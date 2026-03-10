@@ -10,7 +10,7 @@ const DAY_LABELS: Record<number, string> = {
   1: 'Mandag', 2: 'Tirsdag', 3: 'Onsdag', 4: 'Torsdag', 5: 'Fredag', 6: 'Lørdag',
 };
 
-const ROW_HEIGHT = 22;
+const ROW_HEIGHT = 24;
 
 function timeToMinutes(t: string) {
   const [h, m] = t.split(':').map(Number);
@@ -84,7 +84,7 @@ export default function TrainingOverview({ plan, slots, facilities }: Props) {
 
   const facilitiesWithSlots = facilities.filter(f => slots.some(s => s.facility_id === f.id));
   const effectiveFacilityId = selectedFacilityId || facilitiesWithSlots[0]?.id || '';
-  const selectedFacility = facilities.find(f => f.id === effectiveFacilityId);
+  const selectedFacility = effectiveFacilityId !== 'all' ? facilities.find(f => f.id === effectiveFacilityId) : undefined;
 
   if (slots.length === 0) {
     return (
@@ -93,6 +93,8 @@ export default function TrainingOverview({ plan, slots, facilities }: Props) {
       </div>
     );
   }
+
+  const showAllFacilities = effectiveFacilityId === 'all';
 
   return (
     <div className="space-y-4">
@@ -107,6 +109,7 @@ export default function TrainingOverview({ plan, slots, facilities }: Props) {
           <Select value={effectiveFacilityId} onValueChange={setSelectedFacilityId}>
             <SelectTrigger className="w-56"><SelectValue placeholder="Vælg facilitet" /></SelectTrigger>
             <SelectContent>
+              {viewMode === 'day' && <SelectItem value="all">Alle faciliteter</SelectItem>}
               {facilitiesWithSlots.map(f => <SelectItem key={f.id} value={f.id}>{f.name}</SelectItem>)}
             </SelectContent>
           </Select>
@@ -118,10 +121,18 @@ export default function TrainingOverview({ plan, slots, facilities }: Props) {
 
       {/* Screen: show selected facility only */}
       <div className="print:hidden">
-        {viewMode === 'week' && selectedFacility ? (
-          <FacilityWeekGrid facility={selectedFacility} plan={plan} slots={slots.filter(s => s.facility_id === effectiveFacilityId)} allSlots={slots} />
+        {viewMode === 'week' ? (
+          selectedFacility ? (
+            <FacilityWeekGrid facility={selectedFacility} plan={plan} slots={slots.filter(s => s.facility_id === effectiveFacilityId)} allSlots={slots} />
+          ) : facilitiesWithSlots[0] ? (
+            <FacilityWeekGrid facility={facilitiesWithSlots[0]} plan={plan} slots={slots.filter(s => s.facility_id === facilitiesWithSlots[0].id)} allSlots={slots} />
+          ) : null
         ) : (
-          <DayView plan={plan} slots={selectedFacility ? slots.filter(s => s.facility_id === effectiveFacilityId) : slots} facilities={selectedFacility ? [selectedFacility] : facilitiesWithSlots} />
+          <DayView
+            plan={plan}
+            slots={showAllFacilities ? slots : selectedFacility ? slots.filter(s => s.facility_id === effectiveFacilityId) : slots}
+            facilities={showAllFacilities ? facilitiesWithSlots : selectedFacility ? [selectedFacility] : facilitiesWithSlots}
+          />
         )}
       </div>
 
@@ -161,9 +172,9 @@ function FacilityWeekGrid({ facility, plan, slots, allSlots }: {
   return (
     <div className="print:break-before-page first:print:break-before-auto">
       {/* Print-only header */}
-      <div className="hidden print:block print:mb-4">
-        <h1 className="text-2xl font-bold text-black">Træningsplan – {facility.name}</h1>
-        <p className="text-sm text-gray-600 mt-1">
+      <div className="hidden print:block print:mb-6">
+        <h1 className="text-3xl font-bold text-black">Træningsplan – {facility.name}</h1>
+        <p className="text-base text-gray-700 mt-1">
           {plan.name} · Gyldig fra {plan.valid_from}{plan.valid_to ? ` til ${plan.valid_to}` : ''} · Kapacitet: {capacity}
         </p>
       </div>
@@ -179,17 +190,17 @@ function FacilityWeekGrid({ facility, plan, slots, allSlots }: {
         </p>
       </div>
 
-      <div className="overflow-x-auto rounded-lg border border-border print:border-gray-400 print:rounded-none">
+      <div className="overflow-x-auto rounded-lg border border-border print:border-black print:rounded-none print:overflow-visible">
         <div className="inline-grid print:w-full" style={{
           gridTemplateColumns: `56px repeat(${OVERVIEW_DAYS.length}, 1fr)`,
           minWidth: `${56 + OVERVIEW_DAYS.length * 160}px`,
         }}>
           {/* Header row */}
-          <div className="border-b border-r border-border bg-muted/50 px-2 py-2 text-xs font-semibold text-muted-foreground print:bg-gray-100 print:border-gray-400 print:text-sm">
+          <div className="border-b-2 border-r border-border bg-muted/50 px-2 py-2 text-xs font-semibold text-muted-foreground print:bg-gray-200 print:border-black print:text-black print:text-sm print:font-bold">
             Tid
           </div>
           {OVERVIEW_DAYS.map(day => (
-            <div key={day} className="border-b border-r border-border last:border-r-0 bg-muted/50 px-2 py-2 text-xs font-semibold text-center text-muted-foreground print:bg-gray-100 print:border-gray-400 print:text-sm">
+            <div key={day} className="border-b-2 border-r border-border last:border-r-0 bg-muted/50 px-2 py-2 text-xs font-semibold text-center text-muted-foreground print:bg-gray-200 print:border-black print:text-black print:text-sm print:font-bold">
               {DAY_LABELS[day]}
             </div>
           ))}
@@ -203,8 +214,8 @@ function FacilityWeekGrid({ facility, plan, slots, allSlots }: {
             return [
               <div
                 key={`t-${rowIdx}`}
-                className={`border-r border-border px-1 text-right font-mono text-muted-foreground flex items-start justify-end print:border-gray-300 print:text-gray-600 ${
-                  isHour ? 'border-t border-border print:border-t-gray-400' : isHalfHour ? 'border-t border-border/50' : ''
+                className={`border-r border-border px-1 text-right font-mono text-muted-foreground flex items-start justify-end print:text-black print:font-semibold ${
+                  isHour ? 'border-t border-border print:border-t-black' : isHalfHour ? 'border-t border-border/50 print:border-t-gray-400' : ''
                 }`}
                 style={{ height: ROW_HEIGHT, fontSize: '11px', lineHeight: '16px' }}
               >
@@ -221,7 +232,7 @@ function FacilityWeekGrid({ facility, plan, slots, allSlots }: {
                   <div
                     key={`${day}-${rowIdx}`}
                     className={`border-r border-border last:border-r-0 relative print:border-gray-300 ${
-                      isHour ? 'border-t border-border print:border-t-gray-400' : isHalfHour ? 'border-t border-border/50' : ''
+                      isHour ? 'border-t border-border print:border-t-black' : isHalfHour ? 'border-t border-border/50 print:border-t-gray-400' : ''
                     }`}
                     style={{ height: ROW_HEIGHT }}
                   >
@@ -244,15 +255,15 @@ function FacilityWeekGrid({ facility, plan, slots, allSlots }: {
                             width: `${trackWidth - 1}%`,
                           }}
                         >
-                          <div className="font-semibold text-foreground leading-tight truncate print:text-black" style={{ fontSize: '11px' }}>
+                          <div className="font-semibold text-foreground leading-tight truncate print:text-black print:text-xs" style={{ fontSize: '11px' }}>
                             {s.team_group_name}
                           </div>
                           {s.subgroup_name && (
-                            <div className="text-muted-foreground leading-tight truncate print:text-gray-600" style={{ fontSize: '10px' }}>
+                            <div className="text-muted-foreground leading-tight truncate print:text-gray-700 print:text-xs" style={{ fontSize: '10px' }}>
                               {s.subgroup_name}
                             </div>
                           )}
-                          <div className="text-muted-foreground leading-tight font-mono print:text-gray-500" style={{ fontSize: '10px' }}>
+                          <div className="text-muted-foreground leading-tight font-mono print:text-gray-600 print:text-xs" style={{ fontSize: '10px' }}>
                             {s.start_time.slice(0, 5)}–{s.end_time.slice(0, 5)}
                           </div>
                         </div>
