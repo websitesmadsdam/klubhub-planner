@@ -21,9 +21,10 @@ export function useCreateTrainingPlan() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (plan: Omit<TrainingPlan, 'id' | 'created_at' | 'updated_at' | 'created_by'>) => {
+      const { data: { user } } = await supabase.auth.getUser();
       const { data, error } = await supabase
         .from('training_plans' as any)
-        .insert(plan as any)
+        .insert({ ...plan, created_by: user?.id ?? null } as any)
         .select()
         .single();
       if (error) throw error;
