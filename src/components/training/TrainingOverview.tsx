@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import type { TrainingSlot, Facility, TrainingPlan } from '@/types/training';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -10,10 +10,7 @@ const DAY_LABELS: Record<number, string> = {
   1: 'Mandag', 2: 'Tirsdag', 3: 'Onsdag', 4: 'Torsdag', 5: 'Fredag', 6: 'Lørdag',
 };
 
-const GRID_START = 8 * 60;  // 08:00
-const GRID_END = 22 * 60;   // 22:00
-const ROW_HEIGHT = 18;       // px per 15-min row
-const TOTAL_ROWS = (GRID_END - GRID_START) / 15; // 56 rows
+const ROW_HEIGHT = 22;
 
 function timeToMinutes(t: string) {
   const [h, m] = t.split(':').map(Number);
@@ -42,31 +39,37 @@ function buildTeamColorMap(slots: TrainingSlot[]): Map<string, string> {
   return map;
 }
 
-/**
- * For a given day+facility, assign each slot to a "track" (0..capacity-1).
- * Slots that overlap share the cell but go in separate tracks.
- */
 function assignTracks(daySlots: TrainingSlot[], capacity: number): Map<string, number> {
   const sorted = [...daySlots].sort((a, b) => a.start_time.localeCompare(b.start_time) || a.end_time.localeCompare(b.end_time));
-  const trackEnds: number[] = new Array(capacity).fill(0); // end-minute of each track
+  const trackEnds: number[] = new Array(capacity).fill(0);
   const assignment = new Map<string, number>();
 
   for (const s of sorted) {
     const sStart = timeToMinutes(s.start_time);
-    // Find earliest-ending track that's free
     let bestTrack = 0;
     for (let t = 0; t < capacity; t++) {
-      if (trackEnds[t] <= sStart) {
-        bestTrack = t;
-        break;
-      }
+      if (trackEnds[t] <= sStart) { bestTrack = t; break; }
       if (trackEnds[t] < trackEnds[bestTrack]) bestTrack = t;
     }
     assignment.set(s.id, bestTrack);
     trackEnds[bestTrack] = timeToMinutes(s.end_time);
   }
-
   return assignment;
+}
+
+function computeTimeRange(slots: TrainingSlot[]): { gridStart: number; gridEnd: number } {
+  if (slots.length === 0) return { gridStart: 8 * 60, gridEnd: 22 * 60 };
+  let earliest = Infinity, latest = 0;
+  for (const s of slots) {
+    const st = timeToMinutes(s.start_time);
+    const en = timeToMinutes(s.end_time);
+    if (st < earliest) earliest = st;
+    if (en > latest) latest = en;
+  }
+  // Round down to 30min, subtract 30min; round up to 30min, add 30min
+  const gridStart = Math.max(0, Math.floor((earliest - 30) / 30) * 30);
+  const gridEnd = Math.min(24 * 60, Math.ceil((latest + 30) / 30) * 30);
+  return { gridStart, gridEnd };
 }
 
 interface Props {
@@ -77,9 +80,11 @@ interface Props {
 
 export default function TrainingOverview({ plan, slots, facilities }: Props) {
   const [viewMode, setViewMode] = useState<'week' | 'day'>('week');
-  const [selectedFacilityId, setSelectedFacilityId] = useState<string>('all');
+  const [selectedFacilityId, setSelectedFacilityId] = useState<string>('');
 
   const facilitiesWithSlots = facilities.filter(f => slots.some(s => s.facility_id === f.id));
+  const effectiveFacilityId = selectedFacilityId || facilitiesWithSlots[0]?.id || '';
+  const selectedFacility = facilities.find(f => f.id === effectiveFacilityId);
 
   if (slots.length === 0) {
     return (
@@ -88,10 +93,6 @@ export default function TrainingOverview({ plan, slots, facilities }: Props) {
       </div>
     );
   }
-
-  const visibleFacilities = selectedFacilityId === 'all' || viewMode === 'week'
-    ? facilitiesWithSlots
-    : facilitiesWithSlots.filter(f => f.id === selectedFacilityId);
 
   return (
     <div className="space-y-4">
@@ -103,104 +104,98 @@ export default function TrainingOverview({ plan, slots, facilities }: Props) {
               <TabsTrigger value="day" className="gap-1.5"><List className="h-3.5 w-3.5" />Dag</TabsTrigger>
             </TabsList>
           </Tabs>
-          {viewMode === 'day' && (
-            <Select value={selectedFacilityId} onValueChange={setSelectedFacilityId}>
-              <SelectTrigger className="w-56"><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Alle faciliteter</SelectItem>
-                {facilitiesWithSlots.map(f => <SelectItem key={f.id} value={f.id}>{f.name}</SelectItem>)}
-              </SelectContent>
-            </Select>
-          )}
+          <Select value={effectiveFacilityId} onValueChange={setSelectedFacilityId}>
+            <SelectTrigger className="w-56"><SelectValue placeholder="Vælg facilitet" /></SelectTrigger>
+            <SelectContent>
+              {facilitiesWithSlots.map(f => <SelectItem key={f.id} value={f.id}>{f.name}</SelectItem>)}
+            </SelectContent>
+          </Select>
         </div>
         <Button variant="outline" onClick={() => window.print()} className="gap-1.5">
           <Printer className="h-4 w-4" />Print
         </Button>
       </div>
 
-      <div>
-        {viewMode === 'week' ? (
-          <div className="space-y-10 print:space-y-0">
-            {visibleFacilities.map(fac => {
-              const facSlots = slots.filter(s => s.facility_id === fac.id);
-              if (facSlots.length === 0) return null;
-              return (
-                <div key={fac.id} className="print:break-before-page first:print:break-before-auto">
-                  <FacilityWeekGrid facility={fac} plan={plan} slots={facSlots} allSlots={slots} />
-                </div>
-              );
-            })}
-          </div>
-        ) : (
-          <DayView plan={plan} slots={slots} facilities={visibleFacilities} />
-        )}
-      </div>
+      {viewMode === 'week' && selectedFacility ? (
+        <FacilityWeekGrid facility={selectedFacility} plan={plan} slots={slots.filter(s => s.facility_id === effectiveFacilityId)} allSlots={slots} />
+      ) : (
+        <DayView plan={plan} slots={selectedFacility ? slots.filter(s => s.facility_id === effectiveFacilityId) : slots} facilities={selectedFacility ? [selectedFacility] : facilitiesWithSlots} />
+      )}
     </div>
   );
 }
 
-/* ─── Week grid per facility ─── */
+/* ─── Week grid for a single facility ─── */
 function FacilityWeekGrid({ facility, plan, slots, allSlots }: {
   facility: Facility; plan: TrainingPlan; slots: TrainingSlot[]; allSlots: TrainingSlot[];
 }) {
   const capacity = facility.simultaneous_capacity;
   const teamColors = buildTeamColorMap(allSlots);
+  const { gridStart, gridEnd } = useMemo(() => computeTimeRange(slots), [slots]);
+  const totalRows = (gridEnd - gridStart) / 15;
 
-  // Pre-compute track assignments per day
-  const dayTracks = new Map<number, Map<string, number>>();
-  for (const day of OVERVIEW_DAYS) {
-    const daySlots = slots.filter(s => s.weekday === day);
-    dayTracks.set(day, assignTracks(daySlots, capacity));
-  }
+  const dayTracks = useMemo(() => {
+    const map = new Map<number, Map<string, number>>();
+    for (const day of OVERVIEW_DAYS) {
+      const daySlots = slots.filter(s => s.weekday === day);
+      map.set(day, assignTracks(daySlots, capacity));
+    }
+    return map;
+  }, [slots, capacity]);
 
   return (
-    <div>
-      <div className="mb-3 print:mb-2">
-        <h2 className="text-lg font-bold text-foreground print:text-black">
+    <div className="print:break-before-page first:print:break-before-auto">
+      {/* Print-only header */}
+      <div className="hidden print:block print:mb-4">
+        <h1 className="text-2xl font-bold text-black">Træningsplan – {facility.name}</h1>
+        <p className="text-sm text-gray-600 mt-1">
+          {plan.name} · Gyldig fra {plan.valid_from}{plan.valid_to ? ` til ${plan.valid_to}` : ''} · Kapacitet: {capacity}
+        </p>
+      </div>
+
+      {/* Screen header */}
+      <div className="mb-3 print:hidden">
+        <h2 className="text-lg font-bold text-foreground">
           Træningsplan – {facility.name}
-          <span className="ml-2 text-sm font-normal text-muted-foreground print:text-gray-500">
-            (kapacitet: {capacity})
-          </span>
+          <span className="ml-2 text-sm font-normal text-muted-foreground">(kapacitet: {capacity})</span>
         </h2>
-        <p className="text-sm text-muted-foreground print:text-gray-600">
+        <p className="text-sm text-muted-foreground">
           {plan.name} · Gyldig fra {plan.valid_from}{plan.valid_to ? ` til ${plan.valid_to}` : ''}
         </p>
       </div>
 
       <div className="overflow-x-auto rounded-lg border border-border print:border-gray-400 print:rounded-none">
         <div className="inline-grid print:w-full" style={{
-          gridTemplateColumns: `48px repeat(${OVERVIEW_DAYS.length}, 1fr)`,
-          minWidth: `${48 + OVERVIEW_DAYS.length * 140}px`,
+          gridTemplateColumns: `56px repeat(${OVERVIEW_DAYS.length}, 1fr)`,
+          minWidth: `${56 + OVERVIEW_DAYS.length * 160}px`,
         }}>
           {/* Header row */}
-          <div className="border-b border-r border-border bg-muted/50 px-1 py-1.5 text-xs font-medium text-muted-foreground print:bg-gray-100 print:border-gray-400">
+          <div className="border-b border-r border-border bg-muted/50 px-2 py-2 text-xs font-semibold text-muted-foreground print:bg-gray-100 print:border-gray-400 print:text-sm">
             Tid
           </div>
           {OVERVIEW_DAYS.map(day => (
-            <div key={day} className="border-b border-r border-border last:border-r-0 bg-muted/50 px-1 py-1.5 text-xs font-medium text-center text-muted-foreground print:bg-gray-100 print:border-gray-400">
+            <div key={day} className="border-b border-r border-border last:border-r-0 bg-muted/50 px-2 py-2 text-xs font-semibold text-center text-muted-foreground print:bg-gray-100 print:border-gray-400 print:text-sm">
               {DAY_LABELS[day]}
             </div>
           ))}
 
-          {/* Grid rows – 15 min each */}
-          {Array.from({ length: TOTAL_ROWS }, (_, rowIdx) => {
-            const rowMinutes = GRID_START + rowIdx * 15;
+          {/* Grid rows */}
+          {Array.from({ length: totalRows }, (_, rowIdx) => {
+            const rowMinutes = gridStart + rowIdx * 15;
             const isHalfHour = rowMinutes % 30 === 0;
             const isHour = rowMinutes % 60 === 0;
 
             return [
-              // Time label cell
               <div
                 key={`t-${rowIdx}`}
-                className={`border-r border-border px-1 text-right font-mono text-muted-foreground flex items-start justify-end print:border-gray-300 print:text-gray-500 ${
+                className={`border-r border-border px-1 text-right font-mono text-muted-foreground flex items-start justify-end print:border-gray-300 print:text-gray-600 ${
                   isHour ? 'border-t border-border print:border-t-gray-400' : isHalfHour ? 'border-t border-border/50' : ''
                 }`}
-                style={{ height: ROW_HEIGHT, fontSize: '10px', lineHeight: '14px' }}
+                style={{ height: ROW_HEIGHT, fontSize: '11px', lineHeight: '16px' }}
               >
                 {isHalfHour ? minutesToStr(rowMinutes) : ''}
               </div>,
 
-              // Day cells
               ...OVERVIEW_DAYS.map(day => {
                 const tracks = dayTracks.get(day)!;
                 const startingSlots = slots.filter(
@@ -226,23 +221,23 @@ function FacilityWeekGrid({ facility, plan, slots, allSlots }: {
                       return (
                         <div
                           key={s.id}
-                          className={`absolute rounded-sm border overflow-hidden z-10 px-1 py-0.5 ${colorClass}`}
+                          className={`absolute rounded-sm border overflow-hidden z-10 px-1.5 py-0.5 ${colorClass}`}
                           style={{
                             top: 0,
                             height: spanRows * ROW_HEIGHT - 1,
                             left: `${track * trackWidth}%`,
-                            width: `${trackWidth}%`,
+                            width: `${trackWidth - 1}%`,
                           }}
                         >
-                          <div className="font-semibold text-foreground leading-tight truncate print:text-black" style={{ fontSize: '10px' }}>
+                          <div className="font-semibold text-foreground leading-tight truncate print:text-black" style={{ fontSize: '11px' }}>
                             {s.team_group_name}
                           </div>
                           {s.subgroup_name && (
-                            <div className="text-muted-foreground leading-tight truncate print:text-gray-600" style={{ fontSize: '9px' }}>
+                            <div className="text-muted-foreground leading-tight truncate print:text-gray-600" style={{ fontSize: '10px' }}>
                               {s.subgroup_name}
                             </div>
                           )}
-                          <div className="text-muted-foreground leading-tight font-mono print:text-gray-500" style={{ fontSize: '9px' }}>
+                          <div className="text-muted-foreground leading-tight font-mono print:text-gray-500" style={{ fontSize: '10px' }}>
                             {s.start_time.slice(0, 5)}–{s.end_time.slice(0, 5)}
                           </div>
                         </div>
@@ -269,15 +264,21 @@ function DayView({ plan, slots, facilities }: { plan: TrainingPlan; slots: Train
 
         return (
           <div key={fac.id} className="print:break-before-page first:print:break-before-auto">
-            <div className="mb-3 print:mb-2">
-              <h2 className="text-lg font-bold text-foreground print:text-black">Træningsplan – {fac.name}</h2>
-              <p className="text-sm text-muted-foreground print:text-gray-600">
+            <div className="hidden print:block print:mb-4">
+              <h1 className="text-2xl font-bold text-black">Træningsplan – {fac.name}</h1>
+              <p className="text-sm text-gray-600 mt-1">
+                {plan.name} · Gyldig fra {plan.valid_from}{plan.valid_to ? ` til ${plan.valid_to}` : ''}
+              </p>
+            </div>
+            <div className="mb-3 print:hidden">
+              <h2 className="text-lg font-bold text-foreground">{fac.name}</h2>
+              <p className="text-sm text-muted-foreground">
                 {plan.name} · Gyldig fra {plan.valid_from}{plan.valid_to ? ` til ${plan.valid_to}` : ''}
               </p>
             </div>
 
             <div className="rounded-lg border border-border overflow-hidden print:border-gray-400 print:rounded-none">
-              <table className="w-full border-collapse text-sm print:text-xs">
+              <table className="w-full border-collapse text-sm print:text-base">
                 <thead>
                   <tr>
                     <th className="border-b border-r border-border bg-muted/50 px-3 py-2 text-left font-medium text-muted-foreground w-28 print:bg-gray-100 print:border-gray-400">Dag</th>
