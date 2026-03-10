@@ -1,8 +1,8 @@
 import { useMemo } from 'react';
 import type { TrainingSlot, TrainingPlan, Facility } from '@/types/training';
 
-const DAY_LABELS: Record<number, string> = {
-  1: 'Mandag', 2: 'Tirsdag', 3: 'Onsdag', 4: 'Torsdag', 5: 'Fredag', 6: 'Lørdag', 7: 'Søndag',
+const DAY_SHORT: Record<number, string> = {
+  1: 'Man', 2: 'Tir', 3: 'Ons', 4: 'Tor', 5: 'Fre', 6: 'Lør', 7: 'Søn',
 };
 
 function timeToMinutes(t: string) {
@@ -47,9 +47,10 @@ export default function TrainingPrintLayout({ plan, slots, facilities }: Props) 
       if (combos.has(key)) continue;
       combos.add(key);
       const fac = facilityMap.get(s.facility_id);
+      const shortFac = (fac?.name ?? 'Ukendt').replace(/hallen$/i, '').replace(/\s+$/,'');
       cols.push({
-        dayLabel: DAY_LABELS[s.weekday] ?? `Dag ${s.weekday}`,
-        facilityName: fac?.name ?? 'Ukendt',
+        dayLabel: DAY_SHORT[s.weekday] ?? `D${s.weekday}`,
+        facilityName: shortFac,
         weekday: s.weekday,
         facilityId: s.facility_id,
         capacity: fac?.simultaneous_capacity ?? 1,
@@ -163,9 +164,22 @@ export default function TrainingPrintLayout({ plan, slots, facilities }: Props) 
           }
           .print-grid .slot-cell {
             font-size: 7.5pt;
-            line-height: 1.2;
+            line-height: 1.3;
             color: #111;
-            height: 18px;
+            min-height: 18px;
+          }
+          .print-grid .slot-cell-active {
+            background: #f3f4f6;
+            border-left: 3px solid #555;
+          }
+          .print-grid .slot-entry {
+            display: block;
+            padding: 1px 0;
+          }
+          .print-grid .slot-entry + .slot-entry {
+            border-top: 1px dashed #bbb;
+            margin-top: 1px;
+            padding-top: 2px;
           }
           .print-grid .slot-name {
             font-weight: 600;
@@ -178,13 +192,6 @@ export default function TrainingPrintLayout({ plan, slots, facilities }: Props) 
           .col-header-day {
             font-size: 8pt;
             font-weight: 700;
-            display: block;
-          }
-          .col-header-fac {
-            font-size: 7pt;
-            font-weight: 400;
-            color: #555;
-            display: block;
           }
         }
       `}</style>
@@ -202,9 +209,8 @@ export default function TrainingPrintLayout({ plan, slots, facilities }: Props) 
           <tr>
             <th className="time-cell">Tid</th>
             {columns.map((col, i) => (
-              <th key={i}>
-                <span className="col-header-day">{col.dayLabel}</span>
-                <span className="col-header-fac">{col.facilityName}</span>
+              <th key={i} style={{ minWidth: 80 }}>
+                <span className="col-header-day">{col.dayLabel} · {col.facilityName}</span>
               </th>
             ))}
           </tr>
@@ -216,16 +222,13 @@ export default function TrainingPrintLayout({ plan, slots, facilities }: Props) 
               {columns.map((col, colIdx) => {
                 const active = getSlotsInRow(col, rowStart);
                 return (
-                  <td key={colIdx} className="slot-cell">
-                    {active.length > 0 ? (
-                      active.map((s, si) => (
-                        <span key={s.id}>
-                          {si > 0 && ' / '}
-                          <span className="slot-name">{s.team_group_name}</span>
-                          {s.subgroup_name && <span className="slot-sub"> ({s.subgroup_name})</span>}
-                        </span>
-                      ))
-                    ) : null}
+                  <td key={colIdx} className={`slot-cell${active.length > 0 ? ' slot-cell-active' : ''}`}>
+                    {active.map(s => (
+                      <span key={s.id} className="slot-entry">
+                        <span className="slot-name">{s.team_group_name}</span>
+                        {s.subgroup_name && <span className="slot-sub"> ({s.subgroup_name})</span>}
+                      </span>
+                    ))}
                   </td>
                 );
               })}
