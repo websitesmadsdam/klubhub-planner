@@ -217,7 +217,7 @@ export default function TrainingSlotsPage({ planId }: { planId: string }) {
         <TabsList>
           <TabsTrigger value="table">Tabel</TabsTrigger>
           <TabsTrigger value="facility">Pr. facilitet</TabsTrigger>
-          <TabsTrigger value="free">Ledige tider</TabsTrigger>
+          <TabsTrigger value="free">Kapacitetsoverblik</TabsTrigger>
         </TabsList>
 
         <TabsContent value="table" className="mt-4">
