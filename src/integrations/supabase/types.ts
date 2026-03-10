@@ -14,7 +14,316 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      facilities: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          name: string
+          simultaneous_capacity: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          name: string
+          simultaneous_capacity?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          name?: string
+          simultaneous_capacity?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      facility_availability: {
+        Row: {
+          created_at: string
+          end_time: string
+          facility_id: string
+          id: string
+          notes: string | null
+          start_time: string
+          updated_at: string
+          valid_from: string
+          valid_to: string | null
+          weekday: number
+        }
+        Insert: {
+          created_at?: string
+          end_time: string
+          facility_id: string
+          id?: string
+          notes?: string | null
+          start_time: string
+          updated_at?: string
+          valid_from: string
+          valid_to?: string | null
+          weekday: number
+        }
+        Update: {
+          created_at?: string
+          end_time?: string
+          facility_id?: string
+          id?: string
+          notes?: string | null
+          start_time?: string
+          updated_at?: string
+          valid_from?: string
+          valid_to?: string | null
+          weekday?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "facility_availability_facility_id_fkey"
+            columns: ["facility_id"]
+            isOneToOne: false
+            referencedRelation: "facilities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          email: string | null
+          full_name: string | null
+          id: string
+          is_active: boolean
+          role: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          email?: string | null
+          full_name?: string | null
+          id: string
+          is_active?: boolean
+          role?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string | null
+          full_name?: string | null
+          id?: string
+          is_active?: boolean
+          role?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      tasks: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          deadline: string | null
+          description: string | null
+          id: string
+          notes: string | null
+          priority: Database["public"]["Enums"]["priority"]
+          responsible_user_id: string | null
+          status: Database["public"]["Enums"]["task_status"]
+          title: string
+          updated_at: string
+          yearwheel_item_id: string | null
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          deadline?: string | null
+          description?: string | null
+          id?: string
+          notes?: string | null
+          priority?: Database["public"]["Enums"]["priority"]
+          responsible_user_id?: string | null
+          status?: Database["public"]["Enums"]["task_status"]
+          title: string
+          updated_at?: string
+          yearwheel_item_id?: string | null
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          deadline?: string | null
+          description?: string | null
+          id?: string
+          notes?: string | null
+          priority?: Database["public"]["Enums"]["priority"]
+          responsible_user_id?: string | null
+          status?: Database["public"]["Enums"]["task_status"]
+          title?: string
+          updated_at?: string
+          yearwheel_item_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tasks_responsible_user_id_fkey"
+            columns: ["responsible_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tasks_yearwheel_item_id_fkey"
+            columns: ["yearwheel_item_id"]
+            isOneToOne: false
+            referencedRelation: "yearwheel_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      training_plans: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          description: string | null
+          id: string
+          name: string
+          status: Database["public"]["Enums"]["training_plan_status"]
+          updated_at: string
+          valid_from: string
+          valid_to: string | null
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          name: string
+          status?: Database["public"]["Enums"]["training_plan_status"]
+          updated_at?: string
+          valid_from: string
+          valid_to?: string | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          name?: string
+          status?: Database["public"]["Enums"]["training_plan_status"]
+          updated_at?: string
+          valid_from?: string
+          valid_to?: string | null
+        }
+        Relationships: []
+      }
+      training_slots: {
+        Row: {
+          created_at: string
+          end_time: string
+          facility_id: string
+          id: string
+          notes: string | null
+          responsible_name: string | null
+          start_time: string
+          subgroup_name: string | null
+          team_group_name: string
+          training_plan_id: string
+          updated_at: string
+          weekday: number
+        }
+        Insert: {
+          created_at?: string
+          end_time: string
+          facility_id: string
+          id?: string
+          notes?: string | null
+          responsible_name?: string | null
+          start_time: string
+          subgroup_name?: string | null
+          team_group_name: string
+          training_plan_id: string
+          updated_at?: string
+          weekday: number
+        }
+        Update: {
+          created_at?: string
+          end_time?: string
+          facility_id?: string
+          id?: string
+          notes?: string | null
+          responsible_name?: string | null
+          start_time?: string
+          subgroup_name?: string | null
+          team_group_name?: string
+          training_plan_id?: string
+          updated_at?: string
+          weekday?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "training_slots_facility_id_fkey"
+            columns: ["facility_id"]
+            isOneToOne: false
+            referencedRelation: "facilities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "training_slots_training_plan_id_fkey"
+            columns: ["training_plan_id"]
+            isOneToOne: false
+            referencedRelation: "training_plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      yearwheel_items: {
+        Row: {
+          category: string | null
+          created_at: string
+          description: string | null
+          end_date: string | null
+          id: string
+          priority: Database["public"]["Enums"]["priority"]
+          responsible_user_id: string | null
+          start_date: string
+          status: Database["public"]["Enums"]["yearwheel_status"]
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string
+          description?: string | null
+          end_date?: string | null
+          id?: string
+          priority?: Database["public"]["Enums"]["priority"]
+          responsible_user_id?: string | null
+          start_date: string
+          status?: Database["public"]["Enums"]["yearwheel_status"]
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          category?: string | null
+          created_at?: string
+          description?: string | null
+          end_date?: string | null
+          id?: string
+          priority?: Database["public"]["Enums"]["priority"]
+          responsible_user_id?: string | null
+          start_date?: string
+          status?: Database["public"]["Enums"]["yearwheel_status"]
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "yearwheel_items_responsible_user_id_fkey"
+            columns: ["responsible_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -23,7 +332,15 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      priority: "low" | "normal" | "high"
+      task_status:
+        | "not_started"
+        | "in_progress"
+        | "waiting"
+        | "completed"
+        | "cancelled"
+      training_plan_status: "draft" | "active" | "archived"
+      yearwheel_status: "planned" | "in_progress" | "completed" | "cancelled"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +467,17 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      priority: ["low", "normal", "high"],
+      task_status: [
+        "not_started",
+        "in_progress",
+        "waiting",
+        "completed",
+        "cancelled",
+      ],
+      training_plan_status: ["draft", "active", "archived"],
+      yearwheel_status: ["planned", "in_progress", "completed", "cancelled"],
+    },
   },
 } as const
