@@ -10,7 +10,7 @@ const DAY_LABELS: Record<number, string> = {
   1: 'Mandag', 2: 'Tirsdag', 3: 'Onsdag', 4: 'Torsdag', 5: 'Fredag', 6: 'Lørdag',
 };
 
-const ROW_HEIGHT = 22;
+const ROW_HEIGHT = 24;
 
 function timeToMinutes(t: string) {
   const [h, m] = t.split(':').map(Number);
