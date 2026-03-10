@@ -116,11 +116,26 @@ export default function TrainingOverview({ plan, slots, facilities }: Props) {
         </Button>
       </div>
 
-      {viewMode === 'week' && selectedFacility ? (
-        <FacilityWeekGrid facility={selectedFacility} plan={plan} slots={slots.filter(s => s.facility_id === effectiveFacilityId)} allSlots={slots} />
-      ) : (
-        <DayView plan={plan} slots={selectedFacility ? slots.filter(s => s.facility_id === effectiveFacilityId) : slots} facilities={selectedFacility ? [selectedFacility] : facilitiesWithSlots} />
-      )}
+      {/* Screen: show selected facility only */}
+      <div className="print:hidden">
+        {viewMode === 'week' && selectedFacility ? (
+          <FacilityWeekGrid facility={selectedFacility} plan={plan} slots={slots.filter(s => s.facility_id === effectiveFacilityId)} allSlots={slots} />
+        ) : (
+          <DayView plan={plan} slots={selectedFacility ? slots.filter(s => s.facility_id === effectiveFacilityId) : slots} facilities={selectedFacility ? [selectedFacility] : facilitiesWithSlots} />
+        )}
+      </div>
+
+      {/* Print: all facilities, one per page */}
+      <div className="hidden print:block">
+        {facilitiesWithSlots.map((fac, idx) => {
+          const facSlots = slots.filter(s => s.facility_id === fac.id);
+          return (
+            <div key={fac.id} className={idx > 0 ? 'print:break-before-page' : ''}>
+              <FacilityWeekGrid facility={fac} plan={plan} slots={facSlots} allSlots={slots} />
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 }
