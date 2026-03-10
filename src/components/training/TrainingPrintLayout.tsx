@@ -1,8 +1,8 @@
 import { useMemo } from 'react';
 import type { TrainingSlot, TrainingPlan, Facility } from '@/types/training';
 
-const DAY_LABELS: Record<number, string> = {
-  1: 'Mandag', 2: 'Tirsdag', 3: 'Onsdag', 4: 'Torsdag', 5: 'Fredag', 6: 'Lørdag', 7: 'Søndag',
+const DAY_SHORT: Record<number, string> = {
+  1: 'Man', 2: 'Tir', 3: 'Ons', 4: 'Tor', 5: 'Fre', 6: 'Lør', 7: 'Søn',
 };
 
 function timeToMinutes(t: string) {
