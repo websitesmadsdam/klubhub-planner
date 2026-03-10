@@ -101,20 +101,27 @@ All colors MUST be HSL.
 
 /* Print styles */
 @media print {
-  /* Hide everything except the main content */
+  @page {
+    size: A4 landscape;
+    margin: 10mm;
+  }
+
   body {
     background: white !important;
     color: black !important;
-    font-size: 10pt !important;
+    font-size: 9pt !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
   }
 
-  /* Hide sidebar, nav, header controls */
+  /* Hide sidebar, nav, header controls, print:hidden elements */
   [data-sidebar],
   nav,
   header,
   .page-header,
   .page-subtitle,
-  [role="tablist"] {
+  [role="tablist"],
+  .print\:hidden {
     display: none !important;
   }
 
@@ -124,10 +131,11 @@ All colors MUST be HSL.
     padding: 0 !important;
     margin: 0 !important;
     max-width: 100% !important;
+    width: 100% !important;
   }
 
   /* Page breaks */
-  .print\\:break-before-page {
+  .print\:break-before-page {
     break-before: page;
   }
 
@@ -139,6 +147,5 @@ All colors MUST be HSL.
   /* Remove shadows, rounded corners */
   * {
     box-shadow: none !important;
-    border-radius: 0 !important;
   }
 }
