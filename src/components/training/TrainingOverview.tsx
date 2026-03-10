@@ -137,17 +137,8 @@ export default function TrainingOverview({ plan, slots, facilities }: Props) {
         )}
       </div>
 
-      {/* Print: all facilities, one per page */}
-      <div className="hidden print:block">
-        {facilitiesWithSlots.map((fac, idx) => {
-          const facSlots = slots.filter(s => s.facility_id === fac.id);
-          return (
-            <div key={fac.id} className={idx > 0 ? 'print:break-before-page' : ''}>
-              <FacilityWeekGrid facility={fac} plan={plan} slots={facSlots} allSlots={slots} />
-            </div>
-          );
-        })}
-      </div>
+      {/* Print: separate compact layout */}
+      <TrainingPrintLayout plan={plan} slots={slots} facilities={facilities} />
     </div>
   );
 }
