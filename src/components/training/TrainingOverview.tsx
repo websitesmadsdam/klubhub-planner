@@ -214,8 +214,8 @@ function FacilityWeekGrid({ facility, plan, slots, allSlots }: {
             return [
               <div
                 key={`t-${rowIdx}`}
-                className={`border-r border-border px-1 text-right font-mono text-muted-foreground flex items-start justify-end print:border-gray-300 print:text-gray-600 ${
-                  isHour ? 'border-t border-border print:border-t-gray-400' : isHalfHour ? 'border-t border-border/50' : ''
+                className={`border-r border-border px-1 text-right font-mono text-muted-foreground flex items-start justify-end print:text-black print:font-semibold ${
+                  isHour ? 'border-t border-border print:border-t-black' : isHalfHour ? 'border-t border-border/50 print:border-t-gray-400' : ''
                 }`}
                 style={{ height: ROW_HEIGHT, fontSize: '11px', lineHeight: '16px' }}
               >
