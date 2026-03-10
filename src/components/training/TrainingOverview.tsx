@@ -255,15 +255,15 @@ function FacilityWeekGrid({ facility, plan, slots, allSlots }: {
                             width: `${trackWidth - 1}%`,
                           }}
                         >
-                          <div className="font-semibold text-foreground leading-tight truncate print:text-black" style={{ fontSize: '11px' }}>
+                          <div className="font-semibold text-foreground leading-tight truncate print:text-black print:text-xs" style={{ fontSize: '11px' }}>
                             {s.team_group_name}
                           </div>
                           {s.subgroup_name && (
-                            <div className="text-muted-foreground leading-tight truncate print:text-gray-600" style={{ fontSize: '10px' }}>
+                            <div className="text-muted-foreground leading-tight truncate print:text-gray-700 print:text-xs" style={{ fontSize: '10px' }}>
                               {s.subgroup_name}
                             </div>
                           )}
-                          <div className="text-muted-foreground leading-tight font-mono print:text-gray-500" style={{ fontSize: '10px' }}>
+                          <div className="text-muted-foreground leading-tight font-mono print:text-gray-600 print:text-xs" style={{ fontSize: '10px' }}>
                             {s.start_time.slice(0, 5)}–{s.end_time.slice(0, 5)}
                           </div>
                         </div>
