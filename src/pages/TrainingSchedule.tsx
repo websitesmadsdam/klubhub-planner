@@ -116,4 +116,41 @@ const TrainingSchedule = () => {
   );
 };
 
+function OverviewWithPlanSelector({ plans, facilities, effectivePlanId, selectedPlanId, setSelectedPlanId }: {
+  plans: any[]; facilities: any[]; effectivePlanId: string; selectedPlanId: string; setSelectedPlanId: (id: string) => void;
+}) {
+  const { data: overviewSlots = [] } = useTrainingSlots(effectivePlanId);
+  const selectedPlan = plans.find((p: any) => p.id === effectivePlanId);
+
+  if (plans.length === 0) {
+    return <div className="rounded-lg border border-border bg-card p-12 text-center text-muted-foreground">Opret en træningsplan først under fanen "Planer"</div>;
+  }
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center gap-3 rounded-lg border border-border bg-card p-3 print:hidden">
+        <span className="text-sm font-medium text-muted-foreground">Plan:</span>
+        <Select value={effectivePlanId} onValueChange={setSelectedPlanId}>
+          <SelectTrigger className="w-72"><SelectValue placeholder="Vælg en plan" /></SelectTrigger>
+          <SelectContent>
+            {plans.map((p: any) => (
+              <SelectItem key={p.id} value={p.id}>
+                <span className="flex items-center gap-2">
+                  {p.name}
+                  <Badge variant={p.status === 'active' ? 'default' : p.status === 'draft' ? 'secondary' : 'outline'} className="text-xs">
+                    {p.status === 'active' ? 'Aktiv' : p.status === 'draft' ? 'Kladde' : 'Arkiveret'}
+                  </Badge>
+                </span>
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+      {selectedPlan && effectivePlanId && (
+        <TrainingOverview plan={selectedPlan} slots={overviewSlots} facilities={facilities} />
+      )}
+    </div>
+  );
+}
+
 export default TrainingSchedule;
