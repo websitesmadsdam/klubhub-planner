@@ -413,13 +413,25 @@ export default function TrainingSlotsPage({ planId }: { planId: string }) {
   );
 }
 
-function FreeSlots({ facilities, availability, slots }: { facilities: Facility[]; availability: FacilityAvailability[]; slots: TrainingSlot[] }) {
-  const hasFreeSlots = facilities.some(fac => {
-    const facAvail = availability.filter(a => a.facility_id === fac.id);
-    return facAvail.length > 0;
-  });
+type SegmentStatus = 'free' | 'partial' | 'full';
 
-  if (!hasFreeSlots) {
+interface TimeSegment {
+  start: string;
+  end: string;
+  concurrent: number;
+  capacity: number;
+  remaining: number;
+  status: SegmentStatus;
+}
+
+function minutesToStr(m: number) {
+  return `${String(Math.floor(m / 60)).padStart(2, '0')}:${String(m % 60).padStart(2, '0')}`;
+}
+
+function FreeSlots({ facilities, availability, slots }: { facilities: Facility[]; availability: FacilityAvailability[]; slots: TrainingSlot[] }) {
+  const hasAvailability = facilities.some(fac => availability.some(a => a.facility_id === fac.id));
+
+  if (!hasAvailability) {
     return (
       <Card><CardContent className="py-8 text-center text-muted-foreground">
         Ingen haltilgængelighed registreret. Tilføj tilgængelighed under fanen "Haltilgængelighed".
@@ -428,96 +440,117 @@ function FreeSlots({ facilities, availability, slots }: { facilities: Facility[]
   }
 
   return (
-    <div className="grid gap-6">
-      {facilities.map(fac => {
-        const facAvail = availability.filter(a => a.facility_id === fac.id);
-        const facSlots = slots.filter(s => s.facility_id === fac.id);
-        if (facAvail.length === 0) return null;
+    <div className="space-y-2">
+      {/* Legend */}
+      <div className="flex flex-wrap items-center gap-4 text-xs text-muted-foreground px-1">
+        <span className="flex items-center gap-1.5"><span className="inline-block w-3 h-3 rounded-sm bg-emerald-500/20 border border-emerald-500/40" /> Ledigt</span>
+        <span className="flex items-center gap-1.5"><span className="inline-block w-3 h-3 rounded-sm bg-amber-500/20 border border-amber-500/40" /> Delvist optaget</span>
+        <span className="flex items-center gap-1.5"><span className="inline-block w-3 h-3 rounded-sm bg-destructive/20 border border-destructive/40" /> Fuldt optaget</span>
+      </div>
 
-        return (
-          <Card key={fac.id}>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-base flex items-center gap-2">
-                {fac.name}
-                <Badge variant="outline" className="font-normal gap-1"><Users className="h-3 w-3" />Kap. {fac.simultaneous_capacity}</Badge>
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-1">
-                {[1, 2, 3, 4, 5, 6, 7].map(day => {
-                  const dayAvail = facAvail.filter(a => a.weekday === day);
-                  const daySlots = facSlots.filter(s => s.weekday === day);
-                  if (dayAvail.length === 0) return null;
+      <div className="grid gap-6">
+        {facilities.map(fac => {
+          const facAvail = availability.filter(a => a.facility_id === fac.id);
+          const facSlots = slots.filter(s => s.facility_id === fac.id);
+          if (facAvail.length === 0) return null;
 
-                  const freeWindows: { start: string; end: string; remainingCapacity: number }[] = [];
+          return (
+            <Card key={fac.id}>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-base flex items-center gap-2">
+                  {fac.name}
+                  <Badge variant="outline" className="font-normal gap-1"><Users className="h-3 w-3" />Kap. {fac.simultaneous_capacity}</Badge>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-1">
+                  {[1, 2, 3, 4, 5, 6, 7].map(day => {
+                    const dayAvail = facAvail.filter(a => a.weekday === day);
+                    const daySlots = facSlots.filter(s => s.weekday === day);
+                    if (dayAvail.length === 0) return null;
 
-                  for (const av of dayAvail) {
-                    const avStart = timeToMinutes(av.start_time);
-                    const avEnd = timeToMinutes(av.end_time);
+                    const segments: TimeSegment[] = [];
 
-                    // Create time points for all slot boundaries within this availability
-                    const timePoints = new Set<number>();
-                    timePoints.add(avStart);
-                    timePoints.add(avEnd);
-                    for (const s of daySlots) {
-                      const sStart = Math.max(timeToMinutes(s.start_time), avStart);
-                      const sEnd = Math.min(timeToMinutes(s.end_time), avEnd);
-                      if (sStart < sEnd) {
-                        timePoints.add(sStart);
-                        timePoints.add(sEnd);
+                    for (const av of dayAvail) {
+                      const avStart = timeToMinutes(av.start_time);
+                      const avEnd = timeToMinutes(av.end_time);
+
+                      const timePoints = new Set<number>();
+                      timePoints.add(avStart);
+                      timePoints.add(avEnd);
+                      for (const s of daySlots) {
+                        const sStart = Math.max(timeToMinutes(s.start_time), avStart);
+                        const sEnd = Math.min(timeToMinutes(s.end_time), avEnd);
+                        if (sStart < sEnd) {
+                          timePoints.add(sStart);
+                          timePoints.add(sEnd);
+                        }
                       }
-                    }
 
-                    const sorted = [...timePoints].sort((a, b) => a - b);
-                    for (let i = 0; i < sorted.length - 1; i++) {
-                      const segStart = sorted[i];
-                      const segEnd = sorted[i + 1];
-                      // Count concurrent slots in this segment
-                      const concurrent = daySlots.filter(s => {
-                        const sStart = timeToMinutes(s.start_time);
-                        const sEnd = timeToMinutes(s.end_time);
-                        return sStart < segEnd && sEnd > segStart;
-                      }).length;
+                      const sorted = [...timePoints].sort((a, b) => a - b);
+                      for (let i = 0; i < sorted.length - 1; i++) {
+                        const segStart = sorted[i];
+                        const segEnd = sorted[i + 1];
+                        const concurrent = daySlots.filter(s => {
+                          const sStart = timeToMinutes(s.start_time);
+                          const sEnd = timeToMinutes(s.end_time);
+                          return sStart < segEnd && sEnd > segStart;
+                        }).length;
 
-                      const remaining = fac.simultaneous_capacity - concurrent;
-                      if (remaining > 0) {
-                        const startStr = `${String(Math.floor(segStart / 60)).padStart(2, '0')}:${String(segStart % 60).padStart(2, '0')}`;
-                        const endStr = `${String(Math.floor(segEnd / 60)).padStart(2, '0')}:${String(segEnd % 60).padStart(2, '0')}`;
+                        const remaining = fac.simultaneous_capacity - concurrent;
+                        const status: SegmentStatus = concurrent === 0 ? 'free' : remaining > 0 ? 'partial' : 'full';
 
-                        // Merge with previous if same remaining capacity
-                        const prev = freeWindows[freeWindows.length - 1];
-                        if (prev && prev.end === startStr && prev.remainingCapacity === remaining) {
-                          prev.end = endStr;
+                        // Merge with previous if same status and remaining
+                        const prev = segments[segments.length - 1];
+                        if (prev && prev.end === minutesToStr(segStart) && prev.status === status && prev.remaining === remaining) {
+                          prev.end = minutesToStr(segEnd);
                         } else {
-                          freeWindows.push({ start: startStr, end: endStr, remainingCapacity: remaining });
+                          segments.push({
+                            start: minutesToStr(segStart),
+                            end: minutesToStr(segEnd),
+                            concurrent,
+                            capacity: fac.simultaneous_capacity,
+                            remaining,
+                            status,
+                          });
                         }
                       }
                     }
-                  }
 
-                  if (freeWindows.length === 0) return null;
+                    if (segments.length === 0) return null;
 
-                  return (
-                    <div key={day} className="flex items-center gap-3 py-1.5 border-b border-border last:border-0">
-                      <span className="w-20 text-sm font-medium text-muted-foreground shrink-0">{WEEKDAYS[day]}</span>
-                      <div className="flex flex-wrap gap-1.5">
-                        {freeWindows.map((w, i) => (
-                          <Badge key={i} variant="outline" className="text-xs gap-1 text-accent border-accent/30">
-                            {w.start} – {w.end}
-                            {fac.simultaneous_capacity > 1 && (
-                              <span className="text-muted-foreground">({w.remainingCapacity} ledig{w.remainingCapacity > 1 ? 'e' : ''})</span>
-                            )}
-                          </Badge>
-                        ))}
+                    return (
+                      <div key={day} className="flex items-start gap-3 py-2 border-b border-border last:border-0">
+                        <span className="w-20 text-sm font-medium text-muted-foreground pt-0.5 shrink-0">{WEEKDAYS[day]}</span>
+                        <div className="flex flex-wrap gap-1.5">
+                          {segments.map((seg, i) => {
+                            const badgeClass =
+                              seg.status === 'free'
+                                ? 'border-emerald-500/40 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400'
+                                : seg.status === 'partial'
+                                  ? 'border-amber-500/40 bg-amber-500/10 text-amber-700 dark:text-amber-400'
+                                  : 'border-destructive/40 bg-destructive/10 text-destructive';
+                            return (
+                              <Badge key={i} variant="outline" className={`text-xs gap-1 ${badgeClass}`}>
+                                {seg.start} – {seg.end}
+                                {seg.status === 'free' && ' Ledigt'}
+                                {seg.status === 'partial' && (
+                                  <span>Restkapacitet {seg.remaining}/{seg.capacity}</span>
+                                )}
+                                {seg.status === 'full' && ' Fuldt'}
+                              </Badge>
+                            );
+                          })}
+                        </div>
                       </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </CardContent>
-          </Card>
-        );
-      })}
+                    );
+                  })}
+                </div>
+              </CardContent>
+            </Card>
+          );
+        })}
+      </div>
     </div>
   );
 }
