@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Printer, Grid3X3, List } from 'lucide-react';
+import TrainingPrintLayout from './TrainingPrintLayout';
 
 const OVERVIEW_DAYS = [1, 2, 3, 4, 5, 6] as const;
 const DAY_LABELS: Record<number, string> = {
@@ -136,17 +137,8 @@ export default function TrainingOverview({ plan, slots, facilities }: Props) {
         )}
       </div>
 
-      {/* Print: all facilities, one per page */}
-      <div className="hidden print:block">
-        {facilitiesWithSlots.map((fac, idx) => {
-          const facSlots = slots.filter(s => s.facility_id === fac.id);
-          return (
-            <div key={fac.id} className={idx > 0 ? 'print:break-before-page' : ''}>
-              <FacilityWeekGrid facility={fac} plan={plan} slots={facSlots} allSlots={slots} />
-            </div>
-          );
-        })}
-      </div>
+      {/* Print: separate compact layout */}
+      <TrainingPrintLayout plan={plan} slots={slots} facilities={facilities} />
     </div>
   );
 }
