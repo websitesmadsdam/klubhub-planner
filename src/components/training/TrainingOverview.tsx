@@ -232,7 +232,7 @@ function FacilityWeekGrid({ facility, plan, slots, allSlots }: {
                   <div
                     key={`${day}-${rowIdx}`}
                     className={`border-r border-border last:border-r-0 relative print:border-gray-300 ${
-                      isHour ? 'border-t border-border print:border-t-gray-400' : isHalfHour ? 'border-t border-border/50' : ''
+                      isHour ? 'border-t border-border print:border-t-black' : isHalfHour ? 'border-t border-border/50 print:border-t-gray-400' : ''
                     }`}
                     style={{ height: ROW_HEIGHT }}
                   >
