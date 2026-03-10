@@ -94,6 +94,8 @@ export default function TrainingOverview({ plan, slots, facilities }: Props) {
     );
   }
 
+  const showAllFacilities = effectiveFacilityId === 'all';
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between gap-3 print:hidden">
@@ -107,6 +109,7 @@ export default function TrainingOverview({ plan, slots, facilities }: Props) {
           <Select value={effectiveFacilityId} onValueChange={setSelectedFacilityId}>
             <SelectTrigger className="w-56"><SelectValue placeholder="Vælg facilitet" /></SelectTrigger>
             <SelectContent>
+              {viewMode === 'day' && <SelectItem value="all">Alle faciliteter</SelectItem>}
               {facilitiesWithSlots.map(f => <SelectItem key={f.id} value={f.id}>{f.name}</SelectItem>)}
             </SelectContent>
           </Select>
@@ -118,10 +121,18 @@ export default function TrainingOverview({ plan, slots, facilities }: Props) {
 
       {/* Screen: show selected facility only */}
       <div className="print:hidden">
-        {viewMode === 'week' && selectedFacility ? (
-          <FacilityWeekGrid facility={selectedFacility} plan={plan} slots={slots.filter(s => s.facility_id === effectiveFacilityId)} allSlots={slots} />
+        {viewMode === 'week' ? (
+          selectedFacility ? (
+            <FacilityWeekGrid facility={selectedFacility} plan={plan} slots={slots.filter(s => s.facility_id === effectiveFacilityId)} allSlots={slots} />
+          ) : facilitiesWithSlots[0] ? (
+            <FacilityWeekGrid facility={facilitiesWithSlots[0]} plan={plan} slots={slots.filter(s => s.facility_id === facilitiesWithSlots[0].id)} allSlots={slots} />
+          ) : null
         ) : (
-          <DayView plan={plan} slots={selectedFacility ? slots.filter(s => s.facility_id === effectiveFacilityId) : slots} facilities={selectedFacility ? [selectedFacility] : facilitiesWithSlots} />
+          <DayView
+            plan={plan}
+            slots={showAllFacilities ? slots : selectedFacility ? slots.filter(s => s.facility_id === effectiveFacilityId) : slots}
+            facilities={showAllFacilities ? facilitiesWithSlots : selectedFacility ? [selectedFacility] : facilitiesWithSlots}
+          />
         )}
       </div>
 
