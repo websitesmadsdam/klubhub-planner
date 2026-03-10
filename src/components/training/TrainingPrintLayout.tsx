@@ -229,16 +229,13 @@ export default function TrainingPrintLayout({ plan, slots, facilities }: Props) 
               {columns.map((col, colIdx) => {
                 const active = getSlotsInRow(col, rowStart);
                 return (
-                  <td key={colIdx} className="slot-cell">
-                    {active.length > 0 ? (
-                      active.map((s, si) => (
-                        <span key={s.id}>
-                          {si > 0 && ' / '}
-                          <span className="slot-name">{s.team_group_name}</span>
-                          {s.subgroup_name && <span className="slot-sub"> ({s.subgroup_name})</span>}
-                        </span>
-                      ))
-                    ) : null}
+                  <td key={colIdx} className={`slot-cell${active.length > 0 ? ' slot-cell-active' : ''}`}>
+                    {active.map(s => (
+                      <span key={s.id} className="slot-entry">
+                        <span className="slot-name">{s.team_group_name}</span>
+                        {s.subgroup_name && <span className="slot-sub"> ({s.subgroup_name})</span>}
+                      </span>
+                    ))}
                   </td>
                 );
               })}
