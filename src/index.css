@@ -98,3 +98,47 @@ All colors MUST be HSL.
     @apply text-muted-foreground mt-1;
   }
 }
+
+/* Print styles */
+@media print {
+  /* Hide everything except the main content */
+  body {
+    background: white !important;
+    color: black !important;
+    font-size: 10pt !important;
+  }
+
+  /* Hide sidebar, nav, header controls */
+  [data-sidebar],
+  nav,
+  header,
+  .page-header,
+  .page-subtitle,
+  [role="tablist"] {
+    display: none !important;
+  }
+
+  /* Remove padding/margins from layout wrappers */
+  main,
+  main > div {
+    padding: 0 !important;
+    margin: 0 !important;
+    max-width: 100% !important;
+  }
+
+  /* Page breaks */
+  .print\\:break-before-page {
+    break-before: page;
+  }
+
+  /* Ensure tables don't break mid-row */
+  tr {
+    break-inside: avoid;
+  }
+
+  /* Remove shadows, rounded corners */
+  * {
+    box-shadow: none !important;
+    border-radius: 0 !important;
+  }
+}
