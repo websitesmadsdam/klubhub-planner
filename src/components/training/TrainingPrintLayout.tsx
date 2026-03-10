@@ -164,9 +164,22 @@ export default function TrainingPrintLayout({ plan, slots, facilities }: Props) 
           }
           .print-grid .slot-cell {
             font-size: 7.5pt;
-            line-height: 1.2;
+            line-height: 1.3;
             color: #111;
-            height: 18px;
+            min-height: 18px;
+          }
+          .print-grid .slot-cell-active {
+            background: #f3f4f6;
+            border-left: 3px solid #555;
+          }
+          .print-grid .slot-entry {
+            display: block;
+            padding: 1px 0;
+          }
+          .print-grid .slot-entry + .slot-entry {
+            border-top: 1px dashed #bbb;
+            margin-top: 1px;
+            padding-top: 2px;
           }
           .print-grid .slot-name {
             font-weight: 600;
