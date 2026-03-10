@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Printer, Grid3X3, List } from 'lucide-react';
+import TrainingPrintLayout from './TrainingPrintLayout';
 
 const OVERVIEW_DAYS = [1, 2, 3, 4, 5, 6] as const;
 const DAY_LABELS: Record<number, string> = {
