@@ -11,31 +11,16 @@ const Login = () => {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [isSignUp, setIsSignUp] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-
-    if (isSignUp) {
-      const { error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: { emailRedirectTo: window.location.origin },
-      });
-      if (error) {
-        toast.error(error.message);
-      } else {
-        toast.success("Tjek din email for bekræftelseslink");
-      }
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error) {
+      toast.error(error.message);
     } else {
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
-      if (error) {
-        toast.error(error.message);
-      } else {
-        navigate("/");
-      }
+      navigate("/");
     }
     setLoading(false);
   };
@@ -48,7 +33,7 @@ const Login = () => {
             K
           </div>
           <CardTitle className="text-xl">KlubHub</CardTitle>
-          <CardDescription>{isSignUp ? "Opret en konto" : "Log ind for at fortsætte"}</CardDescription>
+          <CardDescription>Log ind for at fortsætte</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -58,17 +43,12 @@ const Login = () => {
             </div>
             <div className="space-y-2">
               <Label htmlFor="password">Adgangskode</Label>
-              <Input id="password" type="password" value={password} onChange={e => setPassword(e.target.value)} required minLength={6} />
+              <Input id="password" type="password" value={password} onChange={e => setPassword(e.target.value)} required />
             </div>
             <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? "Vent…" : isSignUp ? "Opret konto" : "Log ind"}
+              {loading ? "Vent…" : "Log ind"}
             </Button>
           </form>
-          <div className="mt-4 text-center text-sm">
-            <button type="button" className="text-primary underline" onClick={() => setIsSignUp(!isSignUp)}>
-              {isSignUp ? "Har du allerede en konto? Log ind" : "Ingen konto? Opret en"}
-            </button>
-          </div>
         </CardContent>
       </Card>
     </div>
