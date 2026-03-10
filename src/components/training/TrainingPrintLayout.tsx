@@ -14,6 +14,23 @@ function minutesToLabel(m: number) {
   return `${String(Math.floor(m / 60)).padStart(2, '0')}:${String(m % 60).padStart(2, '0')}`;
 }
 
+/** Assign each slot a track (0 or 1) so overlapping slots get different tracks */
+function assignTracks(colSlots: TrainingSlot[]): Map<string, number> {
+  const sorted = [...colSlots].sort((a, b) => timeToMinutes(a.start_time) - timeToMinutes(b.start_time));
+  const trackEnds = [0, 0]; // end-time per track
+  const result = new Map<string, number>();
+  for (const s of sorted) {
+    const st = timeToMinutes(s.start_time);
+    // pick track that is free earliest
+    const track = trackEnds[0] <= trackEnds[1] ? 0 : 1;
+    // but prefer whichever is free
+    const pick = st >= trackEnds[0] ? 0 : st >= trackEnds[1] ? 1 : track;
+    result.set(s.id, pick);
+    trackEnds[pick] = timeToMinutes(s.end_time);
+  }
+  return result;
+}
+
 interface Column {
   dayLabel: string;
   facilityName: string;
@@ -26,8 +43,6 @@ interface Props {
   slots: TrainingSlot[];
   facilities: Facility[];
 }
-
-const ROW_HEIGHT = 28; // px per 30 min
 
 export default function TrainingPrintLayout({ plan, slots, facilities }: Props) {
   const facilityMap = useMemo(() => new Map(facilities.map(f => [f.id, f])), [facilities]);
@@ -79,7 +94,9 @@ export default function TrainingPrintLayout({ plan, slots, facilities }: Props) 
   }, [gridStart, gridEnd]);
 
   const totalMinutes = gridEnd - gridStart;
-  const totalHeight = (totalMinutes / 30) * ROW_HEIGHT;
+  // Scale to fit ~480px body height (A4 landscape minus header ≈ 500px usable)
+  const BODY_HEIGHT = 460;
+  const pxPerMin = BODY_HEIGHT / totalMinutes;
 
   const slotIndex = useMemo(() => {
     const idx = new Map<string, TrainingSlot[]>();
@@ -100,121 +117,65 @@ export default function TrainingPrintLayout({ plan, slots, facilities }: Props) 
           .print-layout-root { display: none; }
         }
         @media print {
+          @page { size: A4 landscape; margin: 10mm 8mm; }
+          body * { visibility: hidden; }
+          .print-layout-root,
+          .print-layout-root * { visibility: visible !important; }
           .print-layout-root {
+            position: fixed;
+            left: 0; top: 0;
+            width: 277mm; /* A4 landscape - margins */
             display: block !important;
             font-family: 'Inter', system-ui, sans-serif;
           }
           .print-layout-root * { box-sizing: border-box; }
-          .print-header {
-            margin-bottom: 12px;
-          }
+          .print-header { margin-bottom: 6px; }
           .print-header h1 {
-            font-size: 18pt;
-            font-weight: 700;
-            margin: 0 0 2px 0;
-            color: #111;
+            font-size: 14pt; font-weight: 700; margin: 0 0 1px 0; color: #111;
           }
           .print-header p {
-            font-size: 9pt;
-            color: #555;
-            margin: 0;
+            font-size: 8pt; color: #555; margin: 0;
           }
-          .print-grid-wrapper {
-            display: flex;
-            width: 100%;
-          }
+          .print-grid-wrapper { display: flex; width: 100%; }
           .print-time-col {
-            width: 50px;
-            min-width: 50px;
-            flex-shrink: 0;
+            width: 38px; min-width: 38px; flex-shrink: 0;
           }
           .print-time-label {
-            height: ${ROW_HEIGHT}px;
-            font-family: monospace;
-            font-size: 8pt;
-            font-weight: 600;
-            color: #333;
-            text-align: right;
-            padding-right: 6px;
-            display: flex;
-            align-items: flex-start;
-            justify-content: flex-end;
-            position: relative;
+            font-family: monospace; font-size: 7pt; font-weight: 600;
+            color: #333; text-align: right; padding-right: 4px;
+            position: absolute; left: 0; right: 0;
           }
           .print-time-label span {
-            position: relative;
-            top: -0.55em;
+            position: relative; top: -0.55em;
           }
-          .print-cols-container {
-            display: flex;
-            flex: 1;
-          }
+          .print-cols-container { display: flex; flex: 1; }
           .print-col {
-            flex: 1;
-            min-width: 80px;
+            flex: 1; min-width: 0;
             border-left: 1px solid #333;
           }
-          .print-col:last-child {
-            border-right: 1px solid #333;
-          }
+          .print-col:last-child { border-right: 1px solid #333; }
           .print-col-header {
-            background: #e5e7eb;
-            font-weight: 700;
-            font-size: 8pt;
-            text-align: center;
-            padding: 3px 2px;
-            border-top: 1px solid #333;
-            border-bottom: 1px solid #333;
+            background: #e5e7eb; font-weight: 700; font-size: 7pt;
+            text-align: center; padding: 2px 1px;
+            border-top: 1px solid #333; border-bottom: 1px solid #333;
+            white-space: nowrap; overflow: hidden;
           }
-          .print-col-body {
-            position: relative;
-            height: ${totalHeight}px;
-          }
+          .print-col-body { position: relative; height: ${BODY_HEIGHT}px; }
           .print-row-line {
-            position: absolute;
-            left: 0;
-            right: 0;
-            border-top: 1px solid #ddd;
-            height: 0;
+            position: absolute; left: 0; right: 0;
+            border-top: 1px solid #ddd; height: 0;
           }
-          .print-row-line-hour {
-            border-top: 1px solid #999;
-          }
-          .print-col-body .print-row-line:first-child {
-            border-top: none;
-          }
+          .print-row-line-hour { border-top: 1px solid #999; }
           .print-slot-block {
             position: absolute;
-            left: 2px;
-            right: 2px;
-            background: #f3f4f6;
-            border-left: 3px solid #555;
-            border-radius: 1px;
-            padding: 1px 3px;
-            overflow: hidden;
-            font-size: 7.5pt;
-            line-height: 1.25;
-            z-index: 1;
+            background: #f3f4f6; border-left: 2px solid #555;
+            padding: 0px 2px; overflow: hidden;
+            font-size: 6.5pt; line-height: 1.2; z-index: 1;
           }
-          .print-slot-name {
-            font-weight: 600;
-            color: #111;
-          }
-          .print-slot-sub {
-            font-weight: 400;
-            color: #666;
-            font-size: 7pt;
-          }
-          .print-slot-time {
-            font-weight: 400;
-            color: #888;
-            font-size: 6.5pt;
-          }
-          /* Time column grid lines */
-          .print-time-grid {
-            position: relative;
-            height: ${totalHeight}px;
-          }
+          .print-slot-name { font-weight: 600; color: #111; }
+          .print-slot-sub { font-weight: 400; color: #666; font-size: 6pt; }
+          .print-slot-time { font-weight: 400; color: #888; font-size: 5.5pt; }
+          .print-time-grid { position: relative; height: ${BODY_HEIGHT}px; }
         }
       `}</style>
 
@@ -227,21 +188,14 @@ export default function TrainingPrintLayout({ plan, slots, facilities }: Props) 
       </div>
 
       <div className="print-grid-wrapper">
-        {/* Time labels column */}
         <div className="print-time-col">
-          <div style={{ height: `${ROW_HEIGHT + 6}px` }} />
+          <div style={{ height: '20px' }} />
           <div className="print-time-grid">
             {timeLabels.map(m => (
               <div
                 key={m}
                 className="print-time-label"
-                style={{
-                  position: 'absolute',
-                  top: `${((m - gridStart) / totalMinutes) * totalHeight}px`,
-                  left: 0,
-                  right: 0,
-                  height: `${ROW_HEIGHT}px`,
-                }}
+                style={{ top: `${(m - gridStart) * pxPerMin}px`, height: `${30 * pxPerMin}px` }}
               >
                 <span>{minutesToLabel(m)}</span>
               </div>
@@ -249,40 +203,40 @@ export default function TrainingPrintLayout({ plan, slots, facilities }: Props) 
           </div>
         </div>
 
-        {/* Data columns */}
         <div className="print-cols-container">
           {columns.map((col, i) => {
             const colSlots = slotIndex.get(`${col.weekday}-${col.facilityId}`) ?? [];
+            const tracks = assignTracks(colSlots);
             return (
               <div className="print-col" key={i}>
                 <div className="print-col-header">
                   {col.dayLabel} · {col.facilityName}
                 </div>
                 <div className="print-col-body">
-                  {/* Grid lines every 30 min */}
                   {timeLabels.map(m => (
                     <div
                       key={m}
                       className={`print-row-line${m % 60 === 0 ? ' print-row-line-hour' : ''}`}
-                      style={{ top: `${((m - gridStart) / totalMinutes) * totalHeight}px` }}
+                      style={{ top: `${(m - gridStart) * pxPerMin}px` }}
                     />
                   ))}
-                  {/* Bottom border */}
-                  <div
-                    className="print-row-line print-row-line-hour"
-                    style={{ top: `${totalHeight}px` }}
-                  />
-                  {/* Slot blocks with precise positioning */}
+                  <div className="print-row-line print-row-line-hour" style={{ top: `${BODY_HEIGHT}px` }} />
                   {colSlots.map(s => {
                     const st = timeToMinutes(s.start_time);
                     const en = timeToMinutes(s.end_time);
-                    const top = ((st - gridStart) / totalMinutes) * totalHeight;
-                    const height = ((en - st) / totalMinutes) * totalHeight;
+                    const top = (st - gridStart) * pxPerMin;
+                    const height = (en - st) * pxPerMin;
+                    const track = tracks.get(s.id) ?? 0;
                     return (
                       <div
                         key={s.id}
                         className="print-slot-block"
-                        style={{ top: `${top}px`, height: `${Math.max(height, 14)}px` }}
+                        style={{
+                          top: `${top}px`,
+                          height: `${Math.max(height, 12)}px`,
+                          left: `${track * 50}%`,
+                          width: '50%',
+                        }}
                       >
                         <span className="print-slot-name">{s.team_group_name}</span>
                         {s.subgroup_name && <span className="print-slot-sub"> ({s.subgroup_name})</span>}
