@@ -192,13 +192,6 @@ export default function TrainingPrintLayout({ plan, slots, facilities }: Props) 
           .col-header-day {
             font-size: 8pt;
             font-weight: 700;
-            display: block;
-          }
-          .col-header-fac {
-            font-size: 7pt;
-            font-weight: 400;
-            color: #555;
-            display: block;
           }
         }
       `}</style>
