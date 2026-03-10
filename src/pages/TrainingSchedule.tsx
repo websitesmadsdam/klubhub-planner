@@ -4,12 +4,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useTrainingPlans } from '@/hooks/useTrainingPlans';
 import { useFacilities } from '@/hooks/useFacilities';
 import { useFacilityAvailability } from '@/hooks/useFacilityAvailability';
+import { useTrainingSlots } from '@/hooks/useTrainingSlots';
 import TrainingPlansPage from '@/components/training/TrainingPlansPage';
 import FacilitiesPage from '@/components/training/FacilitiesPage';
 import FacilityAvailabilityPage from '@/components/training/FacilityAvailabilityPage';
 import TrainingSlotsPage from '@/components/training/TrainingSlotsPage';
+import TrainingOverview from '@/components/training/TrainingOverview';
 import { Badge } from '@/components/ui/badge';
-import { Building2, Calendar, Clock, LayoutGrid } from 'lucide-react';
+import { Building2, Calendar, Clock, LayoutGrid, Eye } from 'lucide-react';
 
 const TrainingSchedule = () => {
   const { data: plans = [] } = useTrainingPlans();
