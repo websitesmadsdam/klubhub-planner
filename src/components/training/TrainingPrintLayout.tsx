@@ -216,9 +216,8 @@ export default function TrainingPrintLayout({ plan, slots, facilities }: Props) 
           <tr>
             <th className="time-cell">Tid</th>
             {columns.map((col, i) => (
-              <th key={i}>
-                <span className="col-header-day">{col.dayLabel}</span>
-                <span className="col-header-fac">{col.facilityName}</span>
+              <th key={i} style={{ minWidth: 80 }}>
+                <span className="col-header-day">{col.dayLabel} · {col.facilityName}</span>
               </th>
             ))}
           </tr>
