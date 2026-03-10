@@ -84,7 +84,7 @@ export default function TrainingOverview({ plan, slots, facilities }: Props) {
 
   const facilitiesWithSlots = facilities.filter(f => slots.some(s => s.facility_id === f.id));
   const effectiveFacilityId = selectedFacilityId || facilitiesWithSlots[0]?.id || '';
-  const selectedFacility = facilities.find(f => f.id === effectiveFacilityId);
+  const selectedFacility = effectiveFacilityId !== 'all' ? facilities.find(f => f.id === effectiveFacilityId) : undefined;
 
   if (slots.length === 0) {
     return (
