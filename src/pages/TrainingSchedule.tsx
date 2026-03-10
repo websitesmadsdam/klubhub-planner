@@ -107,6 +107,10 @@ const TrainingSchedule = () => {
             </div>
           )}
         </TabsContent>
+
+        <TabsContent value="overview" className="mt-6">
+          <OverviewWithPlanSelector plans={plans} facilities={facilities} effectivePlanId={effectivePlanId} selectedPlanId={selectedPlanId} setSelectedPlanId={setSelectedPlanId} />
+        </TabsContent>
       </Tabs>
     </div>
   );
