@@ -1,5 +1,5 @@
 import { Badge } from '@/components/ui/badge';
-import { TASK_STATUS_LABELS, type Task } from '@/types/tasks';
+import { TASK_STATUS_LABELS, isClosedStatus, type Task } from '@/types/tasks';
 
 const statusVariant: Record<Task['status'], string> = {
   not_started: 'bg-muted text-muted-foreground',
@@ -10,8 +10,12 @@ const statusVariant: Record<Task['status'], string> = {
 };
 
 export function TaskStatusBadge({ status }: { status: Task['status'] }) {
+  const closed = isClosedStatus(status);
   return (
-    <Badge variant="outline" className={`text-xs font-medium ${statusVariant[status]}`}>
+    <Badge
+      variant="outline"
+      className={`text-xs font-medium ${statusVariant[status]} ${closed ? 'opacity-60 line-through' : ''}`}
+    >
       {TASK_STATUS_LABELS[status]}
     </Badge>
   );

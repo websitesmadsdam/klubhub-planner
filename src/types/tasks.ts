@@ -44,8 +44,23 @@ export const TASK_STATUS_LABELS: Record<Task['status'], string> = {
   not_started: 'Ikke startet',
   in_progress: 'I gang',
   waiting: 'Afventer',
-  completed: 'Afsluttet',
+  completed: 'Færdig',
   cancelled: 'Annulleret',
+};
+
+export const ACTIVE_STATUSES: Task['status'][] = ['not_started', 'in_progress', 'waiting'];
+export const CLOSED_STATUSES: Task['status'][] = ['completed', 'cancelled'];
+
+export const isActiveStatus = (s: Task['status']) => ACTIVE_STATUSES.includes(s);
+export const isClosedStatus = (s: Task['status']) => CLOSED_STATUSES.includes(s);
+
+/** Logical next-status transitions for a simple workflow */
+export const STATUS_TRANSITIONS: Record<Task['status'], Task['status'][]> = {
+  not_started: ['in_progress', 'cancelled'],
+  in_progress: ['waiting', 'completed', 'cancelled'],
+  waiting: ['in_progress', 'completed', 'cancelled'],
+  completed: ['in_progress'],            // reopen
+  cancelled: ['not_started'],            // reopen
 };
 
 export const TASK_TYPE_LABELS: Record<string, string> = {
