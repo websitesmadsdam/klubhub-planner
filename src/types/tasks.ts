@@ -14,6 +14,8 @@ export interface Task {
   notes: string | null;
   completed_at: string | null;
   created_by: string | null;
+  season_label: string | null;
+  template_id: string | null;
   created_at: string;
   updated_at: string;
   // joined
@@ -84,3 +86,39 @@ export const AREA_OPTIONS = [
   'Events',
   'Andet',
 ];
+
+// Season helpers – season runs May 1 → April 30
+export function getCurrentSeasonLabel(): string {
+  const now = new Date();
+  const year = now.getFullYear();
+  // If we're in Jan-Apr, we're in the season that started the previous year
+  const startYear = now.getMonth() < 4 ? year - 1 : year;
+  return `${startYear}/${startYear + 1}`;
+}
+
+export function getSeasonOptions(): string[] {
+  const now = new Date();
+  const currentStart = now.getMonth() < 4 ? now.getFullYear() - 1 : now.getFullYear();
+  return [
+    `${currentStart - 1}/${currentStart}`,
+    `${currentStart}/${currentStart + 1}`,
+    `${currentStart + 1}/${currentStart + 2}`,
+  ];
+}
+
+/** Get start/end dates for a season label like "2026/2027" */
+export function getSeasonDates(seasonLabel: string): { start: string; end: string } {
+  const [startYear] = seasonLabel.split('/').map(Number);
+  return {
+    start: `${startYear}-05-01`,
+    end: `${startYear + 1}-04-30`,
+  };
+}
+
+/** Convert a month number (1-12) to a date within the given season */
+export function monthToSeasonDate(month: number, seasonLabel: string): string {
+  const [startYear, endYear] = seasonLabel.split('/').map(Number);
+  // Months 5-12 belong to startYear, months 1-4 belong to endYear
+  const year = month >= 5 ? startYear : endYear;
+  return `${year}-${String(month).padStart(2, '0')}-01`;
+}

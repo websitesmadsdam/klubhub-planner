@@ -204,8 +204,10 @@ export type Database = {
           period_start: string | null
           priority: Database["public"]["Enums"]["priority"]
           responsible_user_id: string | null
+          season_label: string | null
           status: Database["public"]["Enums"]["task_status"]
           task_type: string
+          template_id: string | null
           title: string
           updated_at: string
           yearwheel_item_id: string | null
@@ -223,8 +225,10 @@ export type Database = {
           period_start?: string | null
           priority?: Database["public"]["Enums"]["priority"]
           responsible_user_id?: string | null
+          season_label?: string | null
           status?: Database["public"]["Enums"]["task_status"]
           task_type?: string
+          template_id?: string | null
           title: string
           updated_at?: string
           yearwheel_item_id?: string | null
@@ -242,8 +246,10 @@ export type Database = {
           period_start?: string | null
           priority?: Database["public"]["Enums"]["priority"]
           responsible_user_id?: string | null
+          season_label?: string | null
           status?: Database["public"]["Enums"]["task_status"]
           task_type?: string
+          template_id?: string | null
           title?: string
           updated_at?: string
           yearwheel_item_id?: string | null
@@ -254,6 +260,13 @@ export type Database = {
             columns: ["responsible_user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tasks_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "task_templates"
             referencedColumns: ["id"]
           },
           {
