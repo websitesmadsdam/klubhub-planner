@@ -31,7 +31,7 @@ export function useCreateFacility() {
       return data as unknown as Facility;
     },
     onSuccess: () => { qc.invalidateQueries({ queryKey: ['facilities'] }); toast.success('Facilitet oprettet'); },
-    onError: (e: any) => toast.error(e.message),
+    onError: (e: any) => handleMutationError(e, 'Kunne ikke oprette facilitet. Prøv igen.'),
   });
 }
 
