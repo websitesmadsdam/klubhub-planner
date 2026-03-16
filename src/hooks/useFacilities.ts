@@ -61,6 +61,6 @@ export function useDeleteFacility() {
       if (error) throw error;
     },
     onSuccess: () => { qc.invalidateQueries({ queryKey: ['facilities'] }); toast.success('Facilitet slettet'); },
-    onError: (e: any) => toast.error(e.message),
+    onError: (e: any) => handleMutationError(e, 'Kunne ikke slette facilitet. Prøv igen.'),
   });
 }

@@ -138,6 +138,6 @@ export function useCopyPlan() {
       qc.invalidateQueries({ queryKey: ['training_slots'] });
       toast.success('Plan kopieret som ny draft');
     },
-    onError: (e: any) => toast.error(e.message),
+    onError: (e: any) => handleMutationError(e, 'Kunne ikke kopiere planen. Prøv igen.'),
   });
 }

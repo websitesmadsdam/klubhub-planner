@@ -18,7 +18,7 @@ const Login = () => {
     setLoading(true);
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) {
-      toast.error(error.message);
+      handleAuthError(error);
     } else {
       navigate("/");
     }

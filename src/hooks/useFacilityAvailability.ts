@@ -60,6 +60,6 @@ export function useDeleteFacilityAvailability() {
       if (error) throw error;
     },
     onSuccess: () => { qc.invalidateQueries({ queryKey: ['facility_availability'] }); toast.success('Tilgængelighed slettet'); },
-    onError: (e: any) => toast.error(e.message),
+    onError: (e: any) => handleMutationError(e, 'Kunne ikke slette tilgængelighed. Prøv igen.'),
   });
 }

@@ -64,6 +64,6 @@ export function useDeleteTrainingSlot() {
       if (error) throw error;
     },
     onSuccess: () => { qc.invalidateQueries({ queryKey: ['training_slots'] }); toast.success('Træningspas slettet'); },
-    onError: (e: any) => toast.error(e.message),
+    onError: (e: any) => handleMutationError(e, 'Kunne ikke slette træningspas. Prøv igen.'),
   });
 }
