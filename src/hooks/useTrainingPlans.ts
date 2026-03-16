@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import type { TrainingPlan } from '@/types/training';
 import { toast } from 'sonner';
+import { handleMutationError } from '@/lib/errorHandler';
 
 export function useTrainingPlans() {
   return useQuery({
@@ -31,7 +32,7 @@ export function useCreateTrainingPlan() {
       return data as unknown as TrainingPlan;
     },
     onSuccess: () => { qc.invalidateQueries({ queryKey: ['training_plans'] }); toast.success('Plan oprettet'); },
-    onError: (e: any) => toast.error(e.message),
+    onError: (e: any) => handleMutationError(e, 'Der opstod en fejl ved oprettelse af planen.'),
   });
 }
 
@@ -49,7 +50,7 @@ export function useUpdateTrainingPlan() {
       return data as unknown as TrainingPlan;
     },
     onSuccess: () => { qc.invalidateQueries({ queryKey: ['training_plans'] }); toast.success('Plan opdateret'); },
-    onError: (e: any) => toast.error(e.message),
+    onError: (e: any) => handleMutationError(e, 'Kunne ikke opdatere planen. Prøv igen.'),
   });
 }
 
@@ -61,7 +62,7 @@ export function useDeleteTrainingPlan() {
       if (error) throw error;
     },
     onSuccess: () => { qc.invalidateQueries({ queryKey: ['training_plans'] }); toast.success('Plan slettet'); },
-    onError: (e: any) => toast.error(e.message),
+    onError: (e: any) => handleMutationError(e, 'Kunne ikke slette planen. Prøv igen.'),
   });
 }
 
@@ -82,7 +83,7 @@ export function usePublishPlan() {
       if (error) throw error;
     },
     onSuccess: () => { qc.invalidateQueries({ queryKey: ['training_plans'] }); toast.success('Plan publiceret som aktiv'); },
-    onError: (e: any) => toast.error(e.message),
+    onError: (e: any) => handleMutationError(e, 'Kunne ikke publicere planen. Prøv igen.'),
   });
 }
 
@@ -137,6 +138,6 @@ export function useCopyPlan() {
       qc.invalidateQueries({ queryKey: ['training_slots'] });
       toast.success('Plan kopieret som ny draft');
     },
-    onError: (e: any) => toast.error(e.message),
+    onError: (e: any) => handleMutationError(e, 'Kunne ikke kopiere planen. Prøv igen.'),
   });
 }

@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import type { Facility } from '@/types/training';
 import { toast } from 'sonner';
+import { handleMutationError } from '@/lib/errorHandler';
 
 export function useFacilities() {
   return useQuery({
@@ -30,7 +31,7 @@ export function useCreateFacility() {
       return data as unknown as Facility;
     },
     onSuccess: () => { qc.invalidateQueries({ queryKey: ['facilities'] }); toast.success('Facilitet oprettet'); },
-    onError: (e: any) => toast.error(e.message),
+    onError: (e: any) => handleMutationError(e, 'Kunne ikke oprette facilitet. Prøv igen.'),
   });
 }
 
@@ -48,7 +49,7 @@ export function useUpdateFacility() {
       return data as unknown as Facility;
     },
     onSuccess: () => { qc.invalidateQueries({ queryKey: ['facilities'] }); toast.success('Facilitet opdateret'); },
-    onError: (e: any) => toast.error(e.message),
+    onError: (e: any) => handleMutationError(e, 'Kunne ikke opdatere facilitet. Prøv igen.'),
   });
 }
 
@@ -60,6 +61,6 @@ export function useDeleteFacility() {
       if (error) throw error;
     },
     onSuccess: () => { qc.invalidateQueries({ queryKey: ['facilities'] }); toast.success('Facilitet slettet'); },
-    onError: (e: any) => toast.error(e.message),
+    onError: (e: any) => handleMutationError(e, 'Kunne ikke slette facilitet. Prøv igen.'),
   });
 }

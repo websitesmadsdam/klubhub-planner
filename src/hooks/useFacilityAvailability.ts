@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import type { FacilityAvailability } from '@/types/training';
 import { toast } from 'sonner';
+import { handleMutationError } from '@/lib/errorHandler';
 
 export function useFacilityAvailability(facilityId?: string) {
   return useQuery({
@@ -29,7 +30,7 @@ export function useCreateFacilityAvailability() {
       return data as unknown as FacilityAvailability;
     },
     onSuccess: () => { qc.invalidateQueries({ queryKey: ['facility_availability'] }); toast.success('Tilgængelighed oprettet'); },
-    onError: (e: any) => toast.error(e.message),
+    onError: (e: any) => handleMutationError(e, 'Kunne ikke oprette tilgængelighed. Prøv igen.'),
   });
 }
 
@@ -47,7 +48,7 @@ export function useUpdateFacilityAvailability() {
       return data as unknown as FacilityAvailability;
     },
     onSuccess: () => { qc.invalidateQueries({ queryKey: ['facility_availability'] }); toast.success('Tilgængelighed opdateret'); },
-    onError: (e: any) => toast.error(e.message),
+    onError: (e: any) => handleMutationError(e, 'Kunne ikke opdatere tilgængelighed. Prøv igen.'),
   });
 }
 
@@ -59,6 +60,6 @@ export function useDeleteFacilityAvailability() {
       if (error) throw error;
     },
     onSuccess: () => { qc.invalidateQueries({ queryKey: ['facility_availability'] }); toast.success('Tilgængelighed slettet'); },
-    onError: (e: any) => toast.error(e.message),
+    onError: (e: any) => handleMutationError(e, 'Kunne ikke slette tilgængelighed. Prøv igen.'),
   });
 }
