@@ -8,7 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { useCreateTask, useUpdateTask, useTask, useTaskParticipants, useSetTaskParticipants } from '@/hooks/useTasks';
 import { useProfiles } from '@/hooks/useProfiles';
 import { useAuth } from '@/hooks/useAuth';
-import { TASK_STATUS_LABELS, TASK_TYPE_LABELS, AREA_OPTIONS, type TaskTemplate } from '@/types/tasks';
+import { TASK_STATUS_LABELS, TASK_TYPE_LABELS, AREA_OPTIONS, monthToSeasonDate, type TaskTemplate } from '@/types/tasks';
 import { Checkbox } from '@/components/ui/checkbox';
 
 interface TaskFormProps {
@@ -16,9 +16,10 @@ interface TaskFormProps {
   onClose: () => void;
   editTaskId?: string | null;
   template?: TaskTemplate | null;
+  seasonLabel?: string | null;
 }
 
-export function TaskForm({ open, onClose, editTaskId, template }: TaskFormProps) {
+export function TaskForm({ open, onClose, editTaskId, template, seasonLabel }: TaskFormProps) {
   const { user } = useAuth();
   const { data: profiles = [] } = useProfiles();
   const { data: existingTask } = useTask(editTaskId ?? undefined);
@@ -56,19 +57,18 @@ export function TaskForm({ open, onClose, editTaskId, template }: TaskFormProps)
       });
       setSelectedParticipants(existingParticipants.map(p => p.user_id));
     } else if (template) {
-      const now = new Date();
-      const year = now.getFullYear();
+      const sl = seasonLabel || '';
       setForm({
         title: template.title,
         description: template.description || '',
         area: template.area || '',
         task_type: 'yearwheel',
         status: 'not_started',
-        period_start: template.default_period_start_month
-          ? `${year}-${String(template.default_period_start_month).padStart(2, '0')}-01`
+        period_start: template.default_period_start_month && sl
+          ? monthToSeasonDate(template.default_period_start_month, sl)
           : '',
-        period_end: template.default_period_end_month
-          ? `${year}-${String(template.default_period_end_month).padStart(2, '0')}-01`
+        period_end: template.default_period_end_month && sl
+          ? monthToSeasonDate(template.default_period_end_month, sl)
           : '',
         deadline: '',
         responsible_user_id: '',
@@ -82,7 +82,7 @@ export function TaskForm({ open, onClose, editTaskId, template }: TaskFormProps)
       });
       setSelectedParticipants([]);
     }
-  }, [editTaskId, existingTask, existingParticipants, template]);
+  }, [editTaskId, existingTask, existingParticipants, template, seasonLabel]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -97,6 +97,12 @@ export function TaskForm({ open, onClose, editTaskId, template }: TaskFormProps)
       deadline: form.deadline || null,
       responsible_user_id: form.responsible_user_id || null,
     };
+
+    // If creating from template, attach template_id and season_label
+    if (!editTaskId && template && seasonLabel) {
+      payload.template_id = template.id;
+      payload.season_label = seasonLabel;
+    }
 
     try {
       if (editTaskId) {
@@ -127,7 +133,14 @@ export function TaskForm({ open, onClose, editTaskId, template }: TaskFormProps)
     <Dialog open={open} onOpenChange={v => !v && onClose()}>
       <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>{editTaskId ? 'Rediger opgave' : 'Ny opgave'}</DialogTitle>
+          <DialogTitle>
+            {editTaskId ? 'Rediger opgave' : 'Ny opgave'}
+            {template && seasonLabel && (
+              <span className="ml-2 text-sm font-normal text-muted-foreground">
+                Sæson {seasonLabel}
+              </span>
+            )}
+          </DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
