@@ -118,45 +118,132 @@ export type Database = {
         }
         Relationships: []
       }
+      task_participants: {
+        Row: {
+          created_at: string
+          id: string
+          task_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          task_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          task_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "task_participants_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "tasks"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "task_participants_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      task_templates: {
+        Row: {
+          area: string | null
+          created_at: string
+          default_period_end_month: number | null
+          default_period_start_month: number | null
+          description: string | null
+          id: string
+          is_active: boolean
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          area?: string | null
+          created_at?: string
+          default_period_end_month?: number | null
+          default_period_start_month?: number | null
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          area?: string | null
+          created_at?: string
+          default_period_end_month?: number | null
+          default_period_start_month?: number | null
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       tasks: {
         Row: {
+          area: string | null
           completed_at: string | null
           created_at: string
+          created_by: string | null
           deadline: string | null
           description: string | null
           id: string
           notes: string | null
+          period_end: string | null
+          period_start: string | null
           priority: Database["public"]["Enums"]["priority"]
           responsible_user_id: string | null
           status: Database["public"]["Enums"]["task_status"]
+          task_type: string
           title: string
           updated_at: string
           yearwheel_item_id: string | null
         }
         Insert: {
+          area?: string | null
           completed_at?: string | null
           created_at?: string
+          created_by?: string | null
           deadline?: string | null
           description?: string | null
           id?: string
           notes?: string | null
+          period_end?: string | null
+          period_start?: string | null
           priority?: Database["public"]["Enums"]["priority"]
           responsible_user_id?: string | null
           status?: Database["public"]["Enums"]["task_status"]
+          task_type?: string
           title: string
           updated_at?: string
           yearwheel_item_id?: string | null
         }
         Update: {
+          area?: string | null
           completed_at?: string | null
           created_at?: string
+          created_by?: string | null
           deadline?: string | null
           description?: string | null
           id?: string
           notes?: string | null
+          period_end?: string | null
+          period_start?: string | null
           priority?: Database["public"]["Enums"]["priority"]
           responsible_user_id?: string | null
           status?: Database["public"]["Enums"]["task_status"]
+          task_type?: string
           title?: string
           updated_at?: string
           yearwheel_item_id?: string | null
