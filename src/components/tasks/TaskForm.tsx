@@ -55,7 +55,6 @@ export function TaskForm({ open, onClose, editTaskId, template, seasonLabel }: T
         deadline: existingTask.deadline || '',
         responsible_user_id: existingTask.responsible_user_id || '',
       });
-      setSelectedParticipants(existingParticipants.map(p => p.user_id));
     } else if (template) {
       const sl = seasonLabel || '';
       setForm({
@@ -82,7 +81,14 @@ export function TaskForm({ open, onClose, editTaskId, template, seasonLabel }: T
       });
       setSelectedParticipants([]);
     }
-  }, [editTaskId, existingTask, existingParticipants, template, seasonLabel]);
+  }, [editTaskId, existingTask, template, seasonLabel]);
+
+  // Sync participants separately to avoid infinite loop from array reference
+  useEffect(() => {
+    if (editTaskId && existingParticipants.length > 0) {
+      setSelectedParticipants(existingParticipants.map(p => p.user_id));
+    }
+  }, [editTaskId, existingParticipants.length]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
