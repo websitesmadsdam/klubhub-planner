@@ -70,10 +70,11 @@ export function TaskList({ onOpenTask, onEditTask, onNewTask, onNewFromTemplate 
       if (areaFilter !== 'all' && t.area !== areaFilter) return false;
       if (typeFilter !== 'all' && t.task_type !== typeFilter) return false;
       if (responsibleFilter !== 'all' && t.responsible_user_id !== responsibleFilter) return false;
+      if (seasonFilter !== 'all' && t.season_label !== seasonFilter) return false;
       if (onlyMine && t.responsible_user_id !== user?.id) return false;
       return true;
     });
-  }, [tasks, search, statusFilter, areaFilter, typeFilter, responsibleFilter, onlyMine, user]);
+  }, [tasks, search, statusFilter, areaFilter, typeFilter, responsibleFilter, onlyMine, seasonFilter, user]);
 
   const handleStatusChange = (task: Task, newStatus: Task['status']) => {
     updateTask.mutate({
