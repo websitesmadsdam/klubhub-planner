@@ -12,7 +12,7 @@ import { useProfiles } from '@/hooks/useProfiles';
 import { useAuth } from '@/hooks/useAuth';
 import {
   TASK_STATUS_LABELS, TASK_TYPE_LABELS, AREA_OPTIONS,
-  STATUS_TRANSITIONS, isActiveStatus,
+  STATUS_TRANSITIONS, isActiveStatus, getSeasonOptions,
   type Task,
 } from '@/types/tasks';
 import {
