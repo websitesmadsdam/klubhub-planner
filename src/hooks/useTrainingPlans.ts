@@ -32,7 +32,7 @@ export function useCreateTrainingPlan() {
       return data as unknown as TrainingPlan;
     },
     onSuccess: () => { qc.invalidateQueries({ queryKey: ['training_plans'] }); toast.success('Plan oprettet'); },
-    onError: (e: any) => toast.error(e.message),
+    onError: (e: any) => handleMutationError(e, 'Der opstod en fejl ved oprettelse af planen.'),
   });
 }
 
