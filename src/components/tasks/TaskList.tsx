@@ -11,6 +11,7 @@ import { useProfiles } from '@/hooks/useProfiles';
 import { useAuth } from '@/hooks/useAuth';
 import {
   TASK_STATUS_LABELS, TASK_TYPE_LABELS, AREA_OPTIONS,
+  STATUS_TRANSITIONS, isActiveStatus,
   type Task,
 } from '@/types/tasks';
 import {
@@ -19,7 +20,7 @@ import {
   AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import {
-  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 
 interface TaskListProps {
@@ -37,25 +38,25 @@ export function TaskList({ onOpenTask, onEditTask, onNewTask, onNewFromTemplate 
   const updateTask = useUpdateTask();
 
   const [search, setSearch] = useState('');
-  const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [statusFilter, setStatusFilter] = useState<string>('active');
   const [areaFilter, setAreaFilter] = useState<string>('all');
   const [typeFilter, setTypeFilter] = useState<string>('all');
   const [responsibleFilter, setResponsibleFilter] = useState<string>('all');
-  const [onlyActive, setOnlyActive] = useState(false);
   const [onlyMine, setOnlyMine] = useState(false);
 
   const filtered = useMemo(() => {
     return tasks.filter(t => {
       if (search && !t.title.toLowerCase().includes(search.toLowerCase())) return false;
-      if (statusFilter !== 'all' && t.status !== statusFilter) return false;
+      if (statusFilter === 'active' && !isActiveStatus(t.status)) return false;
+      if (statusFilter === 'closed' && isActiveStatus(t.status)) return false;
+      if (statusFilter !== 'all' && statusFilter !== 'active' && statusFilter !== 'closed' && t.status !== statusFilter) return false;
       if (areaFilter !== 'all' && t.area !== areaFilter) return false;
       if (typeFilter !== 'all' && t.task_type !== typeFilter) return false;
       if (responsibleFilter !== 'all' && t.responsible_user_id !== responsibleFilter) return false;
-      if (onlyActive && (t.status === 'completed' || t.status === 'cancelled')) return false;
       if (onlyMine && t.responsible_user_id !== user?.id) return false;
       return true;
     });
-  }, [tasks, search, statusFilter, areaFilter, typeFilter, responsibleFilter, onlyActive, onlyMine, user]);
+  }, [tasks, search, statusFilter, areaFilter, typeFilter, responsibleFilter, onlyMine, user]);
 
   const handleStatusChange = (task: Task, newStatus: Task['status']) => {
     updateTask.mutate({
@@ -97,8 +98,10 @@ export function TaskList({ onOpenTask, onEditTask, onNewTask, onNewFromTemplate 
           />
         </div>
         <Select value={statusFilter} onValueChange={setStatusFilter}>
-          <SelectTrigger className="w-[140px]"><SelectValue placeholder="Status" /></SelectTrigger>
+          <SelectTrigger className="w-[150px]"><SelectValue /></SelectTrigger>
           <SelectContent>
+            <SelectItem value="active">Aktive opgaver</SelectItem>
+            <SelectItem value="closed">Lukkede opgaver</SelectItem>
             <SelectItem value="all">Alle statuser</SelectItem>
             {Object.entries(TASK_STATUS_LABELS).map(([k, v]) => (
               <SelectItem key={k} value={k}>{v}</SelectItem>
@@ -131,10 +134,6 @@ export function TaskList({ onOpenTask, onEditTask, onNewTask, onNewFromTemplate 
           </SelectContent>
         </Select>
         <label className="flex items-center gap-1.5 text-sm text-muted-foreground cursor-pointer">
-          <Checkbox checked={onlyActive} onCheckedChange={v => setOnlyActive(!!v)} />
-          Kun aktive
-        </label>
-        <label className="flex items-center gap-1.5 text-sm text-muted-foreground cursor-pointer">
           <Checkbox checked={onlyMine} onCheckedChange={v => setOnlyMine(!!v)} />
           Mine opgaver
         </label>
@@ -165,7 +164,7 @@ export function TaskList({ onOpenTask, onEditTask, onNewTask, onNewFromTemplate 
               {filtered.map(task => (
                 <TableRow
                   key={task.id}
-                  className="cursor-pointer"
+                  className={`cursor-pointer ${!isActiveStatus(task.status) ? 'opacity-60' : ''}`}
                   onClick={() => onOpenTask(task.id)}
                 >
                   <TableCell className="font-medium">{task.title}</TableCell>
@@ -177,12 +176,13 @@ export function TaskList({ onOpenTask, onEditTask, onNewTask, onNewFromTemplate 
                         <TaskStatusBadge status={task.status} />
                       </DropdownMenuTrigger>
                       <DropdownMenuContent>
-                        {Object.entries(TASK_STATUS_LABELS).map(([k, v]) => (
+                        <div className="px-2 py-1 text-xs text-muted-foreground">Skift til:</div>
+                        {STATUS_TRANSITIONS[task.status].map(s => (
                           <DropdownMenuItem
-                            key={k}
-                            onClick={e => { e.stopPropagation(); handleStatusChange(task, k as Task['status']); }}
+                            key={s}
+                            onClick={e => { e.stopPropagation(); handleStatusChange(task, s); }}
                           >
-                            {v}
+                            {TASK_STATUS_LABELS[s]}
                           </DropdownMenuItem>
                         ))}
                       </DropdownMenuContent>
