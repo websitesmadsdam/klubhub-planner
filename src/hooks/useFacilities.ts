@@ -57,8 +57,9 @@ export function useDeleteFacility() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase.from('facilities' as any).delete().eq('id', id);
+      const { error, count } = await supabase.from('facilities' as any).delete({ count: 'exact' }).eq('id', id);
       if (error) throw error;
+      if (count === 0) throw new Error('permission denied');
     },
     onSuccess: () => { qc.invalidateQueries({ queryKey: ['facilities'] }); toast.success('Facilitet slettet'); },
     onError: (e: any) => handleMutationError(e, 'Kunne ikke slette facilitet. Prøv igen.'),
