@@ -11,12 +11,16 @@ import { useTaskTemplates } from '@/hooks/useTaskTemplates';
 import { useTasks, useCreateTask } from '@/hooks/useTasks';
 import { useAuth } from '@/hooks/useAuth';
 import {
-  getCurrentSeasonLabel, getSeasonOptions, monthToSeasonDate,
-  type TaskTemplate,
+  getCurrentSeasonLabel, getPreviousSeasonLabel, getSeasonOptions, monthToSeasonDate,
+  isActiveStatus, TASK_STATUS_LABELS,
+  type TaskTemplate, type Task,
 } from '@/types/tasks';
-import { Plus, ExternalLink, Loader2, Settings } from 'lucide-react';
+import { Plus, ExternalLink, Loader2, Settings, AlertTriangle } from 'lucide-react';
 import { toast } from 'sonner';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter,
+} from '@/components/ui/dialog';
 
 const MONTHS = [
   'Januar', 'Februar', 'Marts', 'April', 'Maj', 'Juni',
@@ -34,10 +38,10 @@ const YearWheel = () => {
   const [formOpen, setFormOpen] = useState(false);
   const [templateForNew, setTemplateForNew] = useState<TaskTemplate | null>(null);
   const [bulkCreating, setBulkCreating] = useState(false);
+  const [warningOpen, setWarningOpen] = useState(false);
 
   const activeTemplates = useMemo(() => templates.filter(t => t.is_active), [templates]);
 
-  // Map template_id → task for selected season
   const taskByTemplate = useMemo(() => {
     const map = new Map<string, typeof tasks[number]>();
     for (const t of tasks) {
@@ -53,6 +57,22 @@ const YearWheel = () => {
     [activeTemplates, taskByTemplate]
   );
 
+  // Previous season unfinished yearwheel tasks
+  const previousSeason = getPreviousSeasonLabel(season);
+  const unfinishedPrevious = useMemo(() => {
+    return tasks.filter(
+      t => t.task_type === 'yearwheel' && t.season_label === previousSeason && isActiveStatus(t.status)
+    );
+  }, [tasks, previousSeason]);
+
+  const unfinishedByStatus = useMemo(() => {
+    const counts: Record<string, number> = {};
+    for (const t of unfinishedPrevious) {
+      counts[t.status] = (counts[t.status] || 0) + 1;
+    }
+    return counts;
+  }, [unfinishedPrevious]);
+
   const handleCreateSingle = (template: TaskTemplate) => {
     setTemplateForNew(template);
     setFormOpen(true);
@@ -63,11 +83,21 @@ const YearWheel = () => {
     setTemplateForNew(null);
   };
 
-  const handleBulkCreate = async () => {
+  const handleBulkCreateClick = () => {
     if (missingTemplates.length === 0) {
       toast.info('Alle årshjulsopgaver er allerede oprettet for denne sæson.');
       return;
     }
+    // Check for unfinished previous season tasks
+    if (unfinishedPrevious.length > 0) {
+      setWarningOpen(true);
+      return;
+    }
+    executeBulkCreate();
+  };
+
+  const executeBulkCreate = async () => {
+    setWarningOpen(false);
     setBulkCreating(true);
     let created = 0;
     for (const tpl of missingTemplates) {
@@ -95,6 +125,11 @@ const YearWheel = () => {
     }
   };
 
+  const handleViewUnfinished = () => {
+    setWarningOpen(false);
+    navigate(`/opgaver?season=${encodeURIComponent(previousSeason)}&type=yearwheel&status=active`);
+  };
+
   const formatPeriod = (t: TaskTemplate) => {
     if (!t.default_period_start_month) return '—';
     const start = MONTHS[t.default_period_start_month - 1];
@@ -119,7 +154,6 @@ const YearWheel = () => {
         </TabsList>
 
         <TabsContent value="season" className="space-y-4 mt-4">
-          {/* Season selector + bulk action */}
           <div className="flex flex-wrap items-center gap-3">
             <div className="flex items-center gap-2">
               <span className="text-sm font-medium text-muted-foreground">Sæson:</span>
@@ -135,7 +169,7 @@ const YearWheel = () => {
 
             <Button
               variant="outline"
-              onClick={handleBulkCreate}
+              onClick={handleBulkCreateClick}
               disabled={bulkCreating || missingTemplates.length === 0}
             >
               {bulkCreating ? (
@@ -193,19 +227,11 @@ const YearWheel = () => {
                         </TableCell>
                         <TableCell>
                           {task ? (
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => navigate('/opgaver')}
-                            >
+                            <Button variant="ghost" size="sm" onClick={() => navigate('/opgaver')}>
                               <ExternalLink className="mr-1 h-4 w-4" /> Åbn
                             </Button>
                           ) : (
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleCreateSingle(tpl)}
-                            >
+                            <Button variant="ghost" size="sm" onClick={() => handleCreateSingle(tpl)}>
                               <Plus className="mr-1 h-4 w-4" /> Opret
                             </Button>
                           )}
@@ -230,6 +256,47 @@ const YearWheel = () => {
         template={templateForNew}
         seasonLabel={season}
       />
+
+      {/* Warning dialog for unfinished previous season tasks */}
+      <Dialog open={warningOpen} onOpenChange={setWarningOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-amber-500" />
+              Uafsluttede opgaver fra {previousSeason}
+            </DialogTitle>
+            <DialogDescription className="pt-2">
+              Der findes stadig <strong>{unfinishedPrevious.length}</strong> åbne årshjulsopgave{unfinishedPrevious.length !== 1 ? 'r' : ''} fra
+              forrige sæson ({previousSeason}).
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="rounded-md border border-border bg-muted/50 p-3 space-y-1">
+            {Object.entries(unfinishedByStatus).map(([status, count]) => (
+              <div key={status} className="flex items-center justify-between text-sm">
+                <span>{TASK_STATUS_LABELS[status as Task['status']] || status}</span>
+                <Badge variant="secondary" className="text-xs">{count}</Badge>
+              </div>
+            ))}
+          </div>
+
+          <p className="text-sm text-muted-foreground">
+            Du kan stadig oprette opgaver for den nye sæson, men du bør overveje at afslutte eller annullere de gamle først.
+          </p>
+
+          <DialogFooter className="flex-col gap-2 sm:flex-row">
+            <Button variant="outline" onClick={() => setWarningOpen(false)}>
+              Annullér
+            </Button>
+            <Button variant="outline" onClick={handleViewUnfinished}>
+              Se uafsluttede opgaver
+            </Button>
+            <Button onClick={executeBulkCreate}>
+              Fortsæt og opret opgaver
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
