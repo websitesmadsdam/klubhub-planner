@@ -32,6 +32,7 @@ interface TaskListProps {
 }
 
 export function TaskList({ onOpenTask, onEditTask, onNewTask, onNewFromTemplate }: TaskListProps) {
+  const [searchParams, setSearchParams] = useSearchParams();
   const { data: tasks = [], isLoading } = useTasks();
   const { data: profiles = [] } = useProfiles();
   const { user } = useAuth();
@@ -44,6 +45,21 @@ export function TaskList({ onOpenTask, onEditTask, onNewTask, onNewFromTemplate 
   const [typeFilter, setTypeFilter] = useState<string>('all');
   const [responsibleFilter, setResponsibleFilter] = useState<string>('all');
   const [onlyMine, setOnlyMine] = useState(false);
+  const [seasonFilter, setSeasonFilter] = useState<string>('all');
+
+  // Initialize filters from URL params (once)
+  useEffect(() => {
+    const urlSeason = searchParams.get('season');
+    const urlType = searchParams.get('type');
+    const urlStatus = searchParams.get('status');
+    if (urlSeason) setSeasonFilter(urlSeason);
+    if (urlType) setTypeFilter(urlType);
+    if (urlStatus) setStatusFilter(urlStatus);
+    // Clear URL params after reading
+    if (urlSeason || urlType || urlStatus) {
+      setSearchParams({}, { replace: true });
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const filtered = useMemo(() => {
     return tasks.filter(t => {
