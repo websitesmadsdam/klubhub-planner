@@ -30,7 +30,7 @@ export function useCreateFacilityAvailability() {
       return data as unknown as FacilityAvailability;
     },
     onSuccess: () => { qc.invalidateQueries({ queryKey: ['facility_availability'] }); toast.success('Tilgængelighed oprettet'); },
-    onError: (e: any) => toast.error(e.message),
+    onError: (e: any) => handleMutationError(e, 'Kunne ikke oprette tilgængelighed. Prøv igen.'),
   });
 }
 
