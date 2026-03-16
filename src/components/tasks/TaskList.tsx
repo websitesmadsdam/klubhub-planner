@@ -1,4 +1,5 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { Search, Plus, FileText, Trash2, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -11,7 +12,7 @@ import { useProfiles } from '@/hooks/useProfiles';
 import { useAuth } from '@/hooks/useAuth';
 import {
   TASK_STATUS_LABELS, TASK_TYPE_LABELS, AREA_OPTIONS,
-  STATUS_TRANSITIONS, isActiveStatus,
+  STATUS_TRANSITIONS, isActiveStatus, getSeasonOptions,
   type Task,
 } from '@/types/tasks';
 import {
@@ -31,6 +32,7 @@ interface TaskListProps {
 }
 
 export function TaskList({ onOpenTask, onEditTask, onNewTask, onNewFromTemplate }: TaskListProps) {
+  const [searchParams, setSearchParams] = useSearchParams();
   const { data: tasks = [], isLoading } = useTasks();
   const { data: profiles = [] } = useProfiles();
   const { user } = useAuth();
@@ -43,6 +45,21 @@ export function TaskList({ onOpenTask, onEditTask, onNewTask, onNewFromTemplate 
   const [typeFilter, setTypeFilter] = useState<string>('all');
   const [responsibleFilter, setResponsibleFilter] = useState<string>('all');
   const [onlyMine, setOnlyMine] = useState(false);
+  const [seasonFilter, setSeasonFilter] = useState<string>('all');
+
+  // Initialize filters from URL params (once)
+  useEffect(() => {
+    const urlSeason = searchParams.get('season');
+    const urlType = searchParams.get('type');
+    const urlStatus = searchParams.get('status');
+    if (urlSeason) setSeasonFilter(urlSeason);
+    if (urlType) setTypeFilter(urlType);
+    if (urlStatus) setStatusFilter(urlStatus);
+    // Clear URL params after reading
+    if (urlSeason || urlType || urlStatus) {
+      setSearchParams({}, { replace: true });
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const filtered = useMemo(() => {
     return tasks.filter(t => {
@@ -53,10 +70,11 @@ export function TaskList({ onOpenTask, onEditTask, onNewTask, onNewFromTemplate 
       if (areaFilter !== 'all' && t.area !== areaFilter) return false;
       if (typeFilter !== 'all' && t.task_type !== typeFilter) return false;
       if (responsibleFilter !== 'all' && t.responsible_user_id !== responsibleFilter) return false;
+      if (seasonFilter !== 'all' && t.season_label !== seasonFilter) return false;
       if (onlyMine && t.responsible_user_id !== user?.id) return false;
       return true;
     });
-  }, [tasks, search, statusFilter, areaFilter, typeFilter, responsibleFilter, onlyMine, user]);
+  }, [tasks, search, statusFilter, areaFilter, typeFilter, responsibleFilter, onlyMine, seasonFilter, user]);
 
   const handleStatusChange = (task: Task, newStatus: Task['status']) => {
     updateTask.mutate({
@@ -130,6 +148,15 @@ export function TaskList({ onOpenTask, onEditTask, onNewTask, onNewFromTemplate 
             <SelectItem value="all">Alle</SelectItem>
             {profiles.map(p => (
               <SelectItem key={p.id} value={p.id}>{p.full_name || p.email || 'Ukendt'}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <Select value={seasonFilter} onValueChange={setSeasonFilter}>
+          <SelectTrigger className="w-[140px]"><SelectValue placeholder="Sæson" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Alle sæsoner</SelectItem>
+            {getSeasonOptions().map(s => (
+              <SelectItem key={s} value={s}>{s}</SelectItem>
             ))}
           </SelectContent>
         </Select>

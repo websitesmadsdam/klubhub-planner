@@ -91,9 +91,13 @@ export const AREA_OPTIONS = [
 export function getCurrentSeasonLabel(): string {
   const now = new Date();
   const year = now.getFullYear();
-  // If we're in Jan-Apr, we're in the season that started the previous year
   const startYear = now.getMonth() < 4 ? year - 1 : year;
   return `${startYear}/${startYear + 1}`;
+}
+
+export function getPreviousSeasonLabel(seasonLabel: string): string {
+  const [startYear] = seasonLabel.split('/').map(Number);
+  return `${startYear - 1}/${startYear}`;
 }
 
 export function getSeasonOptions(): string[] {
