@@ -62,7 +62,7 @@ export function useDeleteTrainingPlan() {
       if (error) throw error;
     },
     onSuccess: () => { qc.invalidateQueries({ queryKey: ['training_plans'] }); toast.success('Plan slettet'); },
-    onError: (e: any) => toast.error(e.message),
+    onError: (e: any) => handleMutationError(e, 'Kunne ikke slette planen. Prøv igen.'),
   });
 }
 
