@@ -52,7 +52,7 @@ export function useUpdateTrainingSlot() {
       return data as unknown as TrainingSlot;
     },
     onSuccess: () => { qc.invalidateQueries({ queryKey: ['training_slots'] }); toast.success('Træningspas opdateret'); },
-    onError: (e: any) => toast.error(e.message),
+    onError: (e: any) => handleMutationError(e, 'Kunne ikke opdatere træningspas. Prøv igen.'),
   });
 }
 
