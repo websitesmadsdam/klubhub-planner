@@ -6,6 +6,7 @@ import { TaskDetail } from '@/components/tasks/TaskDetail';
 import type { TaskTemplate } from '@/types/tasks';
 
 const Tasks = () => {
+  const navigate = useNavigate();
   const [formOpen, setFormOpen] = useState(false);
   const [editTaskId, setEditTaskId] = useState<string | null>(null);
   const [detailTaskId, setDetailTaskId] = useState<string | null>(null);
