@@ -151,6 +151,15 @@ export function TaskList({ onOpenTask, onEditTask, onNewTask, onNewFromTemplate 
             ))}
           </SelectContent>
         </Select>
+        <Select value={seasonFilter} onValueChange={setSeasonFilter}>
+          <SelectTrigger className="w-[140px]"><SelectValue placeholder="Sæson" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Alle sæsoner</SelectItem>
+            {getSeasonOptions().map(s => (
+              <SelectItem key={s} value={s}>{s}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
         <label className="flex items-center gap-1.5 text-sm text-muted-foreground cursor-pointer">
           <Checkbox checked={onlyMine} onCheckedChange={v => setOnlyMine(!!v)} />
           Mine opgaver
