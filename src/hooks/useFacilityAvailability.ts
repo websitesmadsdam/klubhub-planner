@@ -56,8 +56,9 @@ export function useDeleteFacilityAvailability() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase.from('facility_availability' as any).delete().eq('id', id);
+      const { error, count } = await supabase.from('facility_availability' as any).delete({ count: 'exact' }).eq('id', id);
       if (error) throw error;
+      if (count === 0) throw new Error('permission denied');
     },
     onSuccess: () => { qc.invalidateQueries({ queryKey: ['facility_availability'] }); toast.success('Tilgængelighed slettet'); },
     onError: (e: any) => handleMutationError(e, 'Kunne ikke slette tilgængelighed. Prøv igen.'),

@@ -58,8 +58,9 @@ export function useDeleteTrainingPlan() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase.from('training_plans' as any).delete().eq('id', id);
+      const { error, count } = await supabase.from('training_plans' as any).delete({ count: 'exact' }).eq('id', id);
       if (error) throw error;
+      if (count === 0) throw new Error('permission denied');
     },
     onSuccess: () => { qc.invalidateQueries({ queryKey: ['training_plans'] }); toast.success('Plan slettet'); },
     onError: (e: any) => handleMutationError(e, 'Kunne ikke slette planen. Prøv igen.'),
