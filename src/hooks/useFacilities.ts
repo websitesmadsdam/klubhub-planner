@@ -49,7 +49,7 @@ export function useUpdateFacility() {
       return data as unknown as Facility;
     },
     onSuccess: () => { qc.invalidateQueries({ queryKey: ['facilities'] }); toast.success('Facilitet opdateret'); },
-    onError: (e: any) => toast.error(e.message),
+    onError: (e: any) => handleMutationError(e, 'Kunne ikke opdatere facilitet. Prøv igen.'),
   });
 }
 
