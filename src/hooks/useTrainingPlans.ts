@@ -50,7 +50,7 @@ export function useUpdateTrainingPlan() {
       return data as unknown as TrainingPlan;
     },
     onSuccess: () => { qc.invalidateQueries({ queryKey: ['training_plans'] }); toast.success('Plan opdateret'); },
-    onError: (e: any) => toast.error(e.message),
+    onError: (e: any) => handleMutationError(e, 'Kunne ikke opdatere planen. Prøv igen.'),
   });
 }
 
