@@ -42,10 +42,7 @@ const Tasks = () => {
           onOpenTask={handleOpen}
           onEditTask={handleEdit}
           onNewTask={handleNewTask}
-          onNewFromTemplate={() => {
-            // Navigate user to årshjul to pick a template
-            window.location.href = '/aarshjul';
-          }}
+          onNewFromTemplate={() => navigate('/aarshjul')}
         />
       </div>
 
