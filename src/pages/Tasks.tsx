@@ -1,9 +1,7 @@
 import { useState } from 'react';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { TaskList } from '@/components/tasks/TaskList';
 import { TaskForm } from '@/components/tasks/TaskForm';
 import { TaskDetail } from '@/components/tasks/TaskDetail';
-import { TaskTemplates } from '@/components/tasks/TaskTemplates';
 import type { TaskTemplate } from '@/types/tasks';
 
 const Tasks = () => {
@@ -12,21 +10,10 @@ const Tasks = () => {
   const [detailTaskId, setDetailTaskId] = useState<string | null>(null);
   const [detailOpen, setDetailOpen] = useState(false);
   const [templateForNew, setTemplateForNew] = useState<TaskTemplate | null>(null);
-  const [activeTab, setActiveTab] = useState('oversigt');
 
   const handleNewTask = () => {
     setEditTaskId(null);
     setTemplateForNew(null);
-    setFormOpen(true);
-  };
-
-  const handleNewFromTemplate = () => {
-    setActiveTab('skabeloner');
-  };
-
-  const handleCreateFromTemplate = (t: TaskTemplate) => {
-    setEditTaskId(null);
-    setTemplateForNew(t);
     setFormOpen(true);
   };
 
@@ -44,27 +31,21 @@ const Tasks = () => {
   return (
     <div>
       <h1 className="page-header">Opgaver</h1>
-      <p className="page-subtitle">Fordel og følg op på opgaver</p>
+      <p className="page-subtitle">
+        Alle konkrete opgaver – både ad hoc og opgaver oprettet fra årshjulet. Opret nye, tildel ansvarlige og følg status.
+      </p>
 
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-6">
-        <TabsList>
-          <TabsTrigger value="oversigt">Oversigt</TabsTrigger>
-          <TabsTrigger value="skabeloner">Årshjulsskabeloner</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="oversigt" className="mt-4">
-          <TaskList
-            onOpenTask={handleOpen}
-            onEditTask={handleEdit}
-            onNewTask={handleNewTask}
-            onNewFromTemplate={handleNewFromTemplate}
-          />
-        </TabsContent>
-
-        <TabsContent value="skabeloner" className="mt-4">
-          <TaskTemplates onCreateFromTemplate={handleCreateFromTemplate} />
-        </TabsContent>
-      </Tabs>
+      <div className="mt-6">
+        <TaskList
+          onOpenTask={handleOpen}
+          onEditTask={handleEdit}
+          onNewTask={handleNewTask}
+          onNewFromTemplate={() => {
+            // Navigate user to årshjul to pick a template
+            window.location.href = '/aarshjul';
+          }}
+        />
+      </div>
 
       <TaskForm
         open={formOpen}
