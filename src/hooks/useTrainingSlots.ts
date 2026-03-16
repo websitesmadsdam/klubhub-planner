@@ -34,7 +34,7 @@ export function useCreateTrainingSlot() {
       return data as unknown as TrainingSlot;
     },
     onSuccess: () => { qc.invalidateQueries({ queryKey: ['training_slots'] }); toast.success('Træningspas oprettet'); },
-    onError: (e: any) => toast.error(e.message),
+    onError: (e: any) => handleMutationError(e, 'Kunne ikke oprette træningspas. Prøv igen.'),
   });
 }
 
