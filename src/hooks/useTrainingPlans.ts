@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import type { TrainingPlan } from '@/types/training';
 import { toast } from 'sonner';
+import { handleMutationError } from '@/lib/errorHandler';
 
 export function useTrainingPlans() {
   return useQuery({

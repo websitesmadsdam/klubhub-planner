@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import type { FacilityAvailability } from '@/types/training';
 import { toast } from 'sonner';
+import { handleMutationError } from '@/lib/errorHandler';
 
 export function useFacilityAvailability(facilityId?: string) {
   return useQuery({
