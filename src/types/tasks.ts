@@ -14,6 +14,8 @@ export interface Task {
   notes: string | null;
   completed_at: string | null;
   created_by: string | null;
+  season_label: string | null;
+  template_id: string | null;
   created_at: string;
   updated_at: string;
   // joined
