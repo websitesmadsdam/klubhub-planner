@@ -1,11 +1,11 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import type { TrainingSlot, Facility } from '@/types/training';
 import { WEEKDAYS } from '@/types/training';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { AlertTriangle, MapPin, Users, Filter } from 'lucide-react';
+import { AlertTriangle, MapPin, Users, Filter, ArrowUp, ArrowDown, ArrowUpDown } from 'lucide-react';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -79,11 +79,16 @@ interface Props {
   facilities: Facility[];
 }
 
+type SortKey = 'team' | 'weekday' | 'time' | 'facility' | 'coach';
+type SortDir = 'asc' | 'desc';
+
 export default function TeamOverview({ slots, facilities }: Props) {
   const [selectedTeams, setSelectedTeams] = useState<string[]>([]);
   const [selectedCoach, setSelectedCoach] = useState<string>('all');
   const [selectedWeekday, setSelectedWeekday] = useState<string>('all');
   const [selectedFacility, setSelectedFacility] = useState<string>('all');
+  const [sortKey, setSortKey] = useState<SortKey>('team');
+  const [sortDir, setSortDir] = useState<SortDir>('asc');
 
   const facilityMap = useMemo(() => new Map(facilities.map(f => [f.id, f])), [facilities]);
 
@@ -111,14 +116,34 @@ export default function TeamOverview({ slots, facilities }: Props) {
   const warnings = useMemo(() => detectWarnings(filteredSlots, facilities), [filteredSlots, facilities]);
   const warningSlotIds = useMemo(() => new Set(warnings.flatMap(w => w.slotIds)), [warnings]);
 
-  const sortedSlots = useMemo(() =>
-    [...filteredSlots].sort((a, b) =>
+  const toggleSort = useCallback((key: SortKey) => {
+    setSortKey(prev => {
+      if (prev === key) {
+        setSortDir(d => d === 'asc' ? 'desc' : 'asc');
+        return key;
+      }
+      setSortDir('asc');
+      return key;
+    });
+  }, []);
+
+  const sortedSlots = useMemo(() => {
+    const dir = sortDir === 'asc' ? 1 : -1;
+    const comparators: Record<SortKey, (a: TrainingSlot, b: TrainingSlot) => number> = {
+      team: (a, b) => a.team_group_name.localeCompare(b.team_group_name) * dir,
+      weekday: (a, b) => (a.weekday - b.weekday) * dir,
+      time: (a, b) => a.start_time.localeCompare(b.start_time) * dir,
+      facility: (a, b) => (facilityMap.get(a.facility_id)?.name ?? '').localeCompare(facilityMap.get(b.facility_id)?.name ?? '') * dir,
+      coach: (a, b) => (a.responsible_name ?? '').localeCompare(b.responsible_name ?? '') * dir,
+    };
+    const primary = comparators[sortKey];
+    return [...filteredSlots].sort((a, b) =>
+      primary(a, b) ||
       a.team_group_name.localeCompare(b.team_group_name) ||
       a.weekday - b.weekday ||
       a.start_time.localeCompare(b.start_time)
-    ),
-    [filteredSlots]
-  );
+    );
+  }, [filteredSlots, sortKey, sortDir, facilityMap]);
 
   const toggleTeam = (team: string) => {
     setSelectedTeams(prev =>
@@ -277,11 +302,28 @@ export default function TeamOverview({ slots, facilities }: Props) {
           <TableHeader>
             <TableRow>
               <TableHead className="w-8" />
-              <TableHead>Hold</TableHead>
-              <TableHead>Ugedag</TableHead>
-              <TableHead>Tid</TableHead>
-              <TableHead>Lokation</TableHead>
-              <TableHead>Træner</TableHead>
+              {([
+                ['team', 'Hold'],
+                ['weekday', 'Ugedag'],
+                ['time', 'Tid'],
+                ['facility', 'Lokation'],
+                ['coach', 'Træner'],
+              ] as [SortKey, string][]).map(([key, label]) => (
+                <TableHead
+                  key={key}
+                  className="cursor-pointer select-none hover:text-foreground transition-colors"
+                  onClick={() => toggleSort(key)}
+                >
+                  <span className="inline-flex items-center gap-1">
+                    {label}
+                    {sortKey === key ? (
+                      sortDir === 'asc' ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />
+                    ) : (
+                      <ArrowUpDown className="h-3 w-3 opacity-30" />
+                    )}
+                  </span>
+                </TableHead>
+              ))}
               <TableHead>Undergruppe</TableHead>
             </TableRow>
           </TableHeader>
