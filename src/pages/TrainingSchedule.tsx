@@ -11,7 +11,8 @@ import FacilityAvailabilityPage from '@/components/training/FacilityAvailability
 import TrainingSlotsPage from '@/components/training/TrainingSlotsPage';
 import TrainingOverview from '@/components/training/TrainingOverview';
 import { Badge } from '@/components/ui/badge';
-import { Building2, Calendar, Clock, LayoutGrid, Eye } from 'lucide-react';
+import TeamOverview from '@/components/training/TeamOverview';
+import { Building2, Calendar, Clock, LayoutGrid, Eye, Users } from 'lucide-react';
 
 const TrainingSchedule = () => {
   const { data: plans = [] } = useTrainingPlans();
