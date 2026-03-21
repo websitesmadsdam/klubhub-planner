@@ -79,11 +79,16 @@ interface Props {
   facilities: Facility[];
 }
 
+type SortKey = 'team' | 'weekday' | 'time' | 'facility' | 'coach';
+type SortDir = 'asc' | 'desc';
+
 export default function TeamOverview({ slots, facilities }: Props) {
   const [selectedTeams, setSelectedTeams] = useState<string[]>([]);
   const [selectedCoach, setSelectedCoach] = useState<string>('all');
   const [selectedWeekday, setSelectedWeekday] = useState<string>('all');
   const [selectedFacility, setSelectedFacility] = useState<string>('all');
+  const [sortKey, setSortKey] = useState<SortKey>('team');
+  const [sortDir, setSortDir] = useState<SortDir>('asc');
 
   const facilityMap = useMemo(() => new Map(facilities.map(f => [f.id, f])), [facilities]);
 
