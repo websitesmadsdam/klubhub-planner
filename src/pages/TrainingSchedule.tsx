@@ -112,6 +112,10 @@ const TrainingSchedule = () => {
           )}
         </TabsContent>
 
+        <TabsContent value="teams" className="mt-6">
+          <TeamsWithPlanSelector plans={plans} facilities={facilities} effectivePlanId={effectivePlanId} selectedPlanId={selectedPlanId} setSelectedPlanId={setSelectedPlanId} />
+        </TabsContent>
+
         <TabsContent value="overview" className="mt-6">
           <OverviewWithPlanSelector plans={plans} facilities={facilities} effectivePlanId={effectivePlanId} selectedPlanId={selectedPlanId} setSelectedPlanId={setSelectedPlanId} />
         </TabsContent>
