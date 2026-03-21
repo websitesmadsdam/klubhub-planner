@@ -302,11 +302,28 @@ export default function TeamOverview({ slots, facilities }: Props) {
           <TableHeader>
             <TableRow>
               <TableHead className="w-8" />
-              <TableHead>Hold</TableHead>
-              <TableHead>Ugedag</TableHead>
-              <TableHead>Tid</TableHead>
-              <TableHead>Lokation</TableHead>
-              <TableHead>Træner</TableHead>
+              {([
+                ['team', 'Hold'],
+                ['weekday', 'Ugedag'],
+                ['time', 'Tid'],
+                ['facility', 'Lokation'],
+                ['coach', 'Træner'],
+              ] as [SortKey, string][]).map(([key, label]) => (
+                <TableHead
+                  key={key}
+                  className="cursor-pointer select-none hover:text-foreground transition-colors"
+                  onClick={() => toggleSort(key)}
+                >
+                  <span className="inline-flex items-center gap-1">
+                    {label}
+                    {sortKey === key ? (
+                      sortDir === 'asc' ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />
+                    ) : (
+                      <ArrowUpDown className="h-3 w-3 opacity-30" />
+                    )}
+                  </span>
+                </TableHead>
+              ))}
               <TableHead>Undergruppe</TableHead>
             </TableRow>
           </TableHeader>
