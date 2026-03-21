@@ -116,14 +116,34 @@ export default function TeamOverview({ slots, facilities }: Props) {
   const warnings = useMemo(() => detectWarnings(filteredSlots, facilities), [filteredSlots, facilities]);
   const warningSlotIds = useMemo(() => new Set(warnings.flatMap(w => w.slotIds)), [warnings]);
 
-  const sortedSlots = useMemo(() =>
-    [...filteredSlots].sort((a, b) =>
+  const toggleSort = useCallback((key: SortKey) => {
+    setSortKey(prev => {
+      if (prev === key) {
+        setSortDir(d => d === 'asc' ? 'desc' : 'asc');
+        return key;
+      }
+      setSortDir('asc');
+      return key;
+    });
+  }, []);
+
+  const sortedSlots = useMemo(() => {
+    const dir = sortDir === 'asc' ? 1 : -1;
+    const comparators: Record<SortKey, (a: TrainingSlot, b: TrainingSlot) => number> = {
+      team: (a, b) => a.team_group_name.localeCompare(b.team_group_name) * dir,
+      weekday: (a, b) => (a.weekday - b.weekday) * dir,
+      time: (a, b) => a.start_time.localeCompare(b.start_time) * dir,
+      facility: (a, b) => (facilityMap.get(a.facility_id)?.name ?? '').localeCompare(facilityMap.get(b.facility_id)?.name ?? '') * dir,
+      coach: (a, b) => (a.responsible_name ?? '').localeCompare(b.responsible_name ?? '') * dir,
+    };
+    const primary = comparators[sortKey];
+    return [...filteredSlots].sort((a, b) =>
+      primary(a, b) ||
       a.team_group_name.localeCompare(b.team_group_name) ||
       a.weekday - b.weekday ||
       a.start_time.localeCompare(b.start_time)
-    ),
-    [filteredSlots]
-  );
+    );
+  }, [filteredSlots, sortKey, sortDir, facilityMap]);
 
   const toggleTeam = (team: string) => {
     setSelectedTeams(prev =>
