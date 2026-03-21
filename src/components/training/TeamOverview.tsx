@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import type { TrainingSlot, Facility } from '@/types/training';
 import { WEEKDAYS } from '@/types/training';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
