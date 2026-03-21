@@ -42,7 +42,7 @@ const TrainingSchedule = () => {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-6">
-        <TabsList className="grid w-full grid-cols-5 lg:w-auto lg:inline-grid print:hidden">
+        <TabsList className="grid w-full grid-cols-6 lg:w-auto lg:inline-grid print:hidden">
           <TabsTrigger value="plans" className="gap-1.5">
             <Calendar className="h-3.5 w-3.5" />Planer
           </TabsTrigger>
@@ -54,6 +54,9 @@ const TrainingSchedule = () => {
           </TabsTrigger>
           <TabsTrigger value="slots" className="gap-1.5">
             <LayoutGrid className="h-3.5 w-3.5" />Træningspas
+          </TabsTrigger>
+          <TabsTrigger value="teams" className="gap-1.5">
+            <Users className="h-3.5 w-3.5" />Pr. hold
           </TabsTrigger>
           <TabsTrigger value="overview" className="gap-1.5">
             <Eye className="h-3.5 w-3.5" />Oversigt
