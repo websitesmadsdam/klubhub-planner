@@ -478,7 +478,7 @@ export default function TrainingSlotsPage({ planId }: { planId: string }) {
         </TabsContent>
 
         <TabsContent value="free" className="mt-4">
-          <FreeSlots facilities={facilities} availability={availability} slots={slots} />
+          <FreeSlots facilities={facilities} availability={availability} slots={slots} plan={plan} />
         </TabsContent>
       </Tabs>
 
