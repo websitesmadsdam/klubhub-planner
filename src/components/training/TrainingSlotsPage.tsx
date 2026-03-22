@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { useTrainingSlots, useCreateTrainingSlot, useUpdateTrainingSlot, useDeleteTrainingSlot } from '@/hooks/useTrainingSlots';
 import { useFacilities } from '@/hooks/useFacilities';
 import { useFacilityAvailability } from '@/hooks/useFacilityAvailability';
