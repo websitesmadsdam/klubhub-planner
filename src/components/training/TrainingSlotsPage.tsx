@@ -190,8 +190,8 @@ export default function TrainingSlotsPage({ planId }: { planId: string }) {
 
   // Live warnings for form
   const formWarnings = useMemo(
-    () => checkFormConflicts(form, editing?.id ?? null, slots, facilities, availability),
-    [form, editing, slots, facilities, availability]
+    () => checkFormConflicts(form, editing?.id ?? null, slots, facilities, availability, plan),
+    [form, editing, slots, facilities, availability, plan]
   );
 
   const openNew = () => { setEditing(null); setForm({ ...emptySlotForm, facility_id: facilities[0]?.id ?? '' }); setDialogOpen(true); };
