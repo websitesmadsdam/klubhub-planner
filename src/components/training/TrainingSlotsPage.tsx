@@ -478,7 +478,7 @@ export default function TrainingSlotsPage({ planId }: { planId: string }) {
         </TabsContent>
 
         <TabsContent value="free" className="mt-4">
-          <FreeSlots facilities={facilities} availability={availability} slots={slots} />
+          <FreeSlots facilities={facilities} availability={availability} slots={slots} plan={plan} />
         </TabsContent>
       </Tabs>
 
@@ -585,7 +585,7 @@ function minutesToStr(m: number) {
   return `${String(Math.floor(m / 60)).padStart(2, '0')}:${String(m % 60).padStart(2, '0')}`;
 }
 
-function FreeSlots({ facilities, availability, slots }: { facilities: Facility[]; availability: FacilityAvailability[]; slots: TrainingSlot[] }) {
+function FreeSlots({ facilities, availability, slots, plan }: { facilities: Facility[]; availability: FacilityAvailability[]; slots: TrainingSlot[]; plan?: { valid_from: string; valid_to: string | null } }) {
   const hasAvailability = facilities.some(fac => availability.some(a => a.facility_id === fac.id));
 
   if (!hasAvailability) {
@@ -607,7 +607,7 @@ function FreeSlots({ facilities, availability, slots }: { facilities: Facility[]
 
       <div className="grid gap-6">
         {facilities.map(fac => {
-          const facAvail = availability.filter(a => a.facility_id === fac.id);
+          const facAvail = availability.filter(a => a.facility_id === fac.id && availabilityAppliesToPlan(a, plan));
           const facSlots = slots.filter(s => s.facility_id === fac.id);
           if (facAvail.length === 0) return null;
 

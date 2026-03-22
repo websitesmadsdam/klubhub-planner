@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useTrainingPlans, useCreateTrainingPlan, useUpdateTrainingPlan, useDeleteTrainingPlan, usePublishPlan, useCopyPlan } from '@/hooks/useTrainingPlans';
+import { formatDateRange } from '@/lib/utils';
 import { useTrainingSlots } from '@/hooks/useTrainingSlots';
 import type { TrainingPlan } from '@/types/training';
 import { Button } from '@/components/ui/button';
@@ -158,7 +159,7 @@ export default function TrainingPlansPage({ onNavigateToSlots }: { onNavigateToS
                   <div className="flex items-center gap-4 text-sm">
                     <span className="flex items-center gap-1 text-muted-foreground">
                       <CalendarDays className="h-3.5 w-3.5" />
-                      {plan.valid_from}{plan.valid_to ? ` → ${plan.valid_to}` : ' →'}
+                      {formatDateRange(plan.valid_from, plan.valid_to)}
                     </span>
                     <SlotCount planId={plan.id} />
                     {onNavigateToSlots && (

@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react';
+import { formatDate } from '@/lib/utils';
 import type { TrainingSlot, Facility, TrainingPlan } from '@/types/training';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -167,7 +168,7 @@ function FacilityWeekGrid({ facility, plan, slots, allSlots }: {
       <div className="hidden print:block print:mb-6">
         <h1 className="text-3xl font-bold text-black">Træningsplan – {facility.name}</h1>
         <p className="text-base text-gray-700 mt-1">
-          {plan.name} · Gyldig fra {plan.valid_from}{plan.valid_to ? ` til ${plan.valid_to}` : ''} · Kapacitet: {capacity}
+          {plan.name} · Gyldig fra {formatDate(plan.valid_from)}{plan.valid_to ? ` til ${formatDate(plan.valid_to)}` : ''} · Kapacitet: {capacity}
         </p>
       </div>
 
@@ -178,7 +179,7 @@ function FacilityWeekGrid({ facility, plan, slots, allSlots }: {
           <span className="ml-2 text-sm font-normal text-muted-foreground">(kapacitet: {capacity})</span>
         </h2>
         <p className="text-sm text-muted-foreground">
-          {plan.name} · Gyldig fra {plan.valid_from}{plan.valid_to ? ` til ${plan.valid_to}` : ''}
+          {plan.name} · Gyldig fra {formatDate(plan.valid_from)}{plan.valid_to ? ` til ${formatDate(plan.valid_to)}` : ''}
         </p>
       </div>
 
@@ -285,13 +286,13 @@ function DayView({ plan, slots, facilities }: { plan: TrainingPlan; slots: Train
             <div className="hidden print:block print:mb-4">
               <h1 className="text-2xl font-bold text-black">Træningsplan – {fac.name}</h1>
               <p className="text-sm text-gray-600 mt-1">
-                {plan.name} · Gyldig fra {plan.valid_from}{plan.valid_to ? ` til ${plan.valid_to}` : ''}
+                {plan.name} · Gyldig fra {formatDate(plan.valid_from)}{plan.valid_to ? ` til ${formatDate(plan.valid_to)}` : ''}
               </p>
             </div>
             <div className="mb-3 print:hidden">
               <h2 className="text-lg font-bold text-foreground">{fac.name}</h2>
               <p className="text-sm text-muted-foreground">
-                {plan.name} · Gyldig fra {plan.valid_from}{plan.valid_to ? ` til ${plan.valid_to}` : ''}
+                {plan.name} · Gyldig fra {formatDate(plan.valid_from)}{plan.valid_to ? ` til ${formatDate(plan.valid_to)}` : ''}
               </p>
             </div>
 

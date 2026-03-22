@@ -1,4 +1,5 @@
 import { useMemo } from 'react';
+import { formatDate } from '@/lib/utils';
 import type { TrainingSlot, TrainingPlan, Facility } from '@/types/training';
 
 const DAY_SHORT: Record<number, string> = {
@@ -200,7 +201,7 @@ export default function TrainingPrintLayout({ plan, slots, facilities }: Props) 
       <div className="print-header">
         <h1>{plan.name}</h1>
         <p>
-          Gyldig fra {plan.valid_from}{plan.valid_to ? ` til ${plan.valid_to}` : ''}
+          Gyldig fra {formatDate(plan.valid_from)}{plan.valid_to ? ` til ${formatDate(plan.valid_to)}` : ''}
           {plan.description ? ` · ${plan.description}` : ''}
         </p>
       </div>

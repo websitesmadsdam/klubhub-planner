@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect } from 'react';
+import { formatDate } from '@/lib/utils';
 import { useSearchParams } from 'react-router-dom';
 import { Search, Plus, FileText, Trash2, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -84,10 +85,6 @@ export function TaskList({ onOpenTask, onEditTask, onNewTask, onNewFromTemplate 
     });
   };
 
-  const formatDate = (d: string | null) => {
-    if (!d) return '—';
-    return new Date(d).toLocaleDateString('da-DK', { day: 'numeric', month: 'short', year: 'numeric' });
-  };
 
   const displayName = (t: Task) =>
     t.responsible?.full_name || t.responsible?.email || '—';

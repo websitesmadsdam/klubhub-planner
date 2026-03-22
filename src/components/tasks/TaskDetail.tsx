@@ -1,3 +1,4 @@
+import { formatDate, formatDateTime } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { TaskStatusBadge } from './TaskStatusBadge';
@@ -22,11 +23,9 @@ export function TaskDetail({ taskId, open, onClose, onEdit }: TaskDetailProps) {
   const { data: participants = [] } = useTaskParticipants(taskId ?? undefined);
   const deleteTask = useDeleteTask();
 
-  const fmt = (d: string | null) =>
-    d ? new Date(d).toLocaleDateString('da-DK', { day: 'numeric', month: 'long', year: 'numeric' }) : '—';
+  const fmt = (d: string | null) => formatDate(d);
 
-  const fmtDateTime = (d: string | null) =>
-    d ? new Date(d).toLocaleString('da-DK', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '—';
+  const fmtDateTime = (d: string | null) => formatDateTime(d);
 
   const handleDelete = async () => {
     if (!taskId) return;
