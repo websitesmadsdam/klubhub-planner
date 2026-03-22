@@ -138,6 +138,36 @@ export default function TrainingSlotsPage({ planId }: { planId: string }) {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<TrainingSlot | null>(null);
   const [form, setForm] = useState<SlotForm>(emptySlotForm);
+  const [sortKey, setSortKey] = useState<SlotSortKey>('weekday');
+  const [sortDir, setSortDir] = useState<SlotSortDir>('asc');
+
+  const toggleSort = useCallback((key: SlotSortKey) => {
+    setSortKey(prev => {
+      if (prev === key) {
+        setSortDir(d => d === 'asc' ? 'desc' : 'asc');
+        return key;
+      }
+      setSortDir('asc');
+      return key;
+    });
+  }, []);
+
+  const sortedSlots = useMemo(() => {
+    const dir = sortDir === 'asc' ? 1 : -1;
+    const fn = (fId: string) => facilities.find(f => f.id === fId)?.name ?? '';
+    const comparators: Record<SlotSortKey, (a: TrainingSlot, b: TrainingSlot) => number> = {
+      weekday: (a, b) => (a.weekday - b.weekday) * dir,
+      time: (a, b) => a.start_time.localeCompare(b.start_time) * dir,
+      facility: (a, b) => fn(a.facility_id).localeCompare(fn(b.facility_id)) * dir,
+      team: (a, b) => a.team_group_name.localeCompare(b.team_group_name) * dir,
+      subgroup: (a, b) => (a.subgroup_name ?? '').localeCompare(b.subgroup_name ?? '') * dir,
+      coach: (a, b) => (a.responsible_name ?? '').localeCompare(b.responsible_name ?? '') * dir,
+    };
+    const primary = comparators[sortKey];
+    return [...slots].sort((a, b) =>
+      primary(a, b) || (a.weekday - b.weekday) || a.start_time.localeCompare(b.start_time)
+    );
+  }, [slots, sortKey, sortDir, facilities]);
 
   const plan = plans.find(p => p.id === planId);
   const conflicts = useMemo(() => findCapacityConflicts(slots, facilities), [slots, facilities]);
