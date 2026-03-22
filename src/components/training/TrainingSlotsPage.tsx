@@ -123,6 +123,9 @@ function checkFormConflicts(
   return { capacityWarning, availabilityWarning };
 }
 
+type SlotSortKey = 'weekday' | 'time' | 'facility' | 'team' | 'subgroup' | 'coach';
+type SlotSortDir = 'asc' | 'desc';
+
 export default function TrainingSlotsPage({ planId }: { planId: string }) {
   const { data: slots = [], isLoading } = useTrainingSlots(planId);
   const { data: facilities = [] } = useFacilities();
