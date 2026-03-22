@@ -44,8 +44,22 @@ function timesOverlap(a1: string, a2: string, b1: string, b2: string) {
   return timeToMinutes(a1) < timeToMinutes(b2) && timeToMinutes(b1) < timeToMinutes(a2);
 }
 
-function isSlotOutsideAvailability(slot: { facility_id: string; weekday: number; start_time: string; end_time: string }, availability: FacilityAvailability[]): boolean {
-  const facAvail = availability.filter(a => a.facility_id === slot.facility_id && a.weekday === slot.weekday);
+function periodsOverlap(aFrom: string, aTo: string | null, bFrom: string, bTo: string | null): boolean {
+  const aEnd = aTo ?? '9999-12-31';
+  const bEnd = bTo ?? '9999-12-31';
+  return aFrom <= bEnd && bFrom <= aEnd;
+}
+
+function isSlotOutsideAvailability(
+  slot: { facility_id: string; weekday: number; start_time: string; end_time: string },
+  availability: FacilityAvailability[],
+  plan?: { valid_from: string; valid_to: string | null }
+): boolean {
+  const facAvail = availability.filter(a =>
+    a.facility_id === slot.facility_id &&
+    a.weekday === slot.weekday &&
+    (!plan || periodsOverlap(a.valid_from, a.valid_to, plan.valid_from, plan.valid_to))
+  );
   if (facAvail.length === 0) return true;
   return !facAvail.some(a => timeToMinutes(slot.start_time) >= timeToMinutes(a.start_time) && timeToMinutes(slot.end_time) <= timeToMinutes(a.end_time));
 }
@@ -100,7 +114,8 @@ function checkFormConflicts(
   editingId: string | null,
   slots: TrainingSlot[],
   facilities: Facility[],
-  availability: FacilityAvailability[]
+  availability: FacilityAvailability[],
+  plan?: { valid_from: string; valid_to: string | null }
 ): { capacityWarning: string | null; availabilityWarning: string | null } {
   const fac = facilities.find(f => f.id === form.facility_id);
   if (!fac || !form.start_time || !form.end_time) return { capacityWarning: null, availabilityWarning: null };
@@ -108,7 +123,8 @@ function checkFormConflicts(
   // Check availability
   const outsideAvail = isSlotOutsideAvailability(
     { facility_id: form.facility_id, weekday: form.weekday, start_time: form.start_time, end_time: form.end_time },
-    availability
+    availability,
+    plan
   );
   const availabilityWarning = outsideAvail ? 'Dette pas ligger udenfor registreret haltilgængelighed' : null;
 
@@ -174,8 +190,8 @@ export default function TrainingSlotsPage({ planId }: { planId: string }) {
 
   // Live warnings for form
   const formWarnings = useMemo(
-    () => checkFormConflicts(form, editing?.id ?? null, slots, facilities, availability),
-    [form, editing, slots, facilities, availability]
+    () => checkFormConflicts(form, editing?.id ?? null, slots, facilities, availability, plan),
+    [form, editing, slots, facilities, availability, plan]
   );
 
   const openNew = () => { setEditing(null); setForm({ ...emptySlotForm, facility_id: facilities[0]?.id ?? '' }); setDialogOpen(true); };
@@ -218,7 +234,7 @@ export default function TrainingSlotsPage({ planId }: { planId: string }) {
 
   // Stats
   const uniqueTeams = [...new Set(slots.map(s => s.team_group_name))];
-  const outsideAvailCount = slots.filter(s => isSlotOutsideAvailability(s, availability)).length;
+  const outsideAvailCount = slots.filter(s => isSlotOutsideAvailability(s, availability, plan)).length;
 
   if (isLoading) return <div className="text-muted-foreground">Indlæser træningspas…</div>;
 
@@ -293,7 +309,7 @@ export default function TrainingSlotsPage({ planId }: { planId: string }) {
                 <TableBody>
                   {sortedSlots.map(s => {
                     const conflict = conflicts.find(c => c.slotId === s.id);
-                    const outsideAvail = isSlotOutsideAvailability(s, availability);
+                    const outsideAvail = isSlotOutsideAvailability(s, availability, plan);
                     return (
                       <TableRow key={s.id} className={conflict ? 'bg-destructive/5' : outsideAvail ? 'bg-secondary/10' : ''}>
                         <TableCell className="pr-0">
@@ -368,7 +384,7 @@ export default function TrainingSlotsPage({ planId }: { planId: string }) {
                             <div className="flex flex-wrap gap-1.5">
                               {daySlots.map(s => {
                                 const hasConflict = conflicts.some(c => c.slotId === s.id);
-                                const outsideAvail = isSlotOutsideAvailability(s, availability);
+                                const outsideAvail = isSlotOutsideAvailability(s, availability, plan);
                                 return (
                                   <Badge
                                     key={s.id}
@@ -410,7 +426,7 @@ export default function TrainingSlotsPage({ planId }: { planId: string }) {
             <div>
               <Label>Facilitet *</Label>
               <Select value={form.facility_id} onValueChange={v => {
-                const availDays = availability.filter(a => a.facility_id === v).map(a => a.weekday);
+                const availDays = availability.filter(a => a.facility_id === v && (!plan || periodsOverlap(a.valid_from, a.valid_to, plan.valid_from, plan.valid_to))).map(a => a.weekday);
                 const uniqueDays = [...new Set(availDays)].sort((a, b) => a - b);
                 setForm(f => ({
                   ...f,
@@ -430,7 +446,7 @@ export default function TrainingSlotsPage({ planId }: { planId: string }) {
               <Label>Ugedag *</Label>
               {(() => {
                 const availDays = form.facility_id
-                  ? [...new Set(availability.filter(a => a.facility_id === form.facility_id).map(a => a.weekday))].sort((a, b) => a - b)
+                  ? [...new Set(availability.filter(a => a.facility_id === form.facility_id && (!plan || periodsOverlap(a.valid_from, a.valid_to, plan.valid_from, plan.valid_to))).map(a => a.weekday))].sort((a, b) => a - b)
                   : [];
                 const options = availDays.length > 0
                   ? WEEKDAY_OPTIONS.filter(o => availDays.includes(o.value))
