@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect } from 'react';
+import { formatDate } from '@/lib/utils';
 import { useSearchParams } from 'react-router-dom';
 import { Search, Plus, FileText, Trash2, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';

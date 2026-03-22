@@ -1,4 +1,5 @@
 import { useMemo } from 'react';
+import { formatDate } from '@/lib/utils';
 import type { TrainingSlot, TrainingPlan, Facility } from '@/types/training';
 
 const DAY_SHORT: Record<number, string> = {
