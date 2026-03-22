@@ -167,7 +167,7 @@ function FacilityWeekGrid({ facility, plan, slots, allSlots }: {
       <div className="hidden print:block print:mb-6">
         <h1 className="text-3xl font-bold text-black">Træningsplan – {facility.name}</h1>
         <p className="text-base text-gray-700 mt-1">
-          {plan.name} · Gyldig fra {plan.valid_from}{plan.valid_to ? ` til ${plan.valid_to}` : ''} · Kapacitet: {capacity}
+          {plan.name} · Gyldig fra {formatDate(plan.valid_from)}{plan.valid_to ? ` til ${formatDate(plan.valid_to)}` : ''} · Kapacitet: {capacity}
         </p>
       </div>
 
