@@ -123,7 +123,8 @@ function checkFormConflicts(
   // Check availability
   const outsideAvail = isSlotOutsideAvailability(
     { facility_id: form.facility_id, weekday: form.weekday, start_time: form.start_time, end_time: form.end_time },
-    availability
+    availability,
+    plan
   );
   const availabilityWarning = outsideAvail ? 'Dette pas ligger udenfor registreret haltilgængelighed' : null;
 
