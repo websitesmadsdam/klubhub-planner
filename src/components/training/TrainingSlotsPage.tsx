@@ -309,7 +309,7 @@ export default function TrainingSlotsPage({ planId }: { planId: string }) {
                 <TableBody>
                   {sortedSlots.map(s => {
                     const conflict = conflicts.find(c => c.slotId === s.id);
-                    const outsideAvail = isSlotOutsideAvailability(s, availability);
+                    const outsideAvail = isSlotOutsideAvailability(s, availability, plan);
                     return (
                       <TableRow key={s.id} className={conflict ? 'bg-destructive/5' : outsideAvail ? 'bg-secondary/10' : ''}>
                         <TableCell className="pr-0">
