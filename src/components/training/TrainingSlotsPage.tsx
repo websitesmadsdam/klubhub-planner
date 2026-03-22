@@ -384,7 +384,7 @@ export default function TrainingSlotsPage({ planId }: { planId: string }) {
                             <div className="flex flex-wrap gap-1.5">
                               {daySlots.map(s => {
                                 const hasConflict = conflicts.some(c => c.slotId === s.id);
-                                const outsideAvail = isSlotOutsideAvailability(s, availability);
+                                const outsideAvail = isSlotOutsideAvailability(s, availability, plan);
                                 return (
                                   <Badge
                                     key={s.id}
