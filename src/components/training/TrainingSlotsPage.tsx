@@ -44,8 +44,22 @@ function timesOverlap(a1: string, a2: string, b1: string, b2: string) {
   return timeToMinutes(a1) < timeToMinutes(b2) && timeToMinutes(b1) < timeToMinutes(a2);
 }
 
-function isSlotOutsideAvailability(slot: { facility_id: string; weekday: number; start_time: string; end_time: string }, availability: FacilityAvailability[]): boolean {
-  const facAvail = availability.filter(a => a.facility_id === slot.facility_id && a.weekday === slot.weekday);
+function periodsOverlap(aFrom: string, aTo: string | null, bFrom: string, bTo: string | null): boolean {
+  const aEnd = aTo ?? '9999-12-31';
+  const bEnd = bTo ?? '9999-12-31';
+  return aFrom <= bEnd && bFrom <= aEnd;
+}
+
+function isSlotOutsideAvailability(
+  slot: { facility_id: string; weekday: number; start_time: string; end_time: string },
+  availability: FacilityAvailability[],
+  plan?: { valid_from: string; valid_to: string | null }
+): boolean {
+  const facAvail = availability.filter(a =>
+    a.facility_id === slot.facility_id &&
+    a.weekday === slot.weekday &&
+    (!plan || periodsOverlap(a.valid_from, a.valid_to, plan.valid_from, plan.valid_to))
+  );
   if (facAvail.length === 0) return true;
   return !facAvail.some(a => timeToMinutes(slot.start_time) >= timeToMinutes(a.start_time) && timeToMinutes(slot.end_time) <= timeToMinutes(a.end_time));
 }
