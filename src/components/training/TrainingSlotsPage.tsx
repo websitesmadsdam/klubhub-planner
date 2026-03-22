@@ -446,7 +446,7 @@ export default function TrainingSlotsPage({ planId }: { planId: string }) {
               <Label>Ugedag *</Label>
               {(() => {
                 const availDays = form.facility_id
-                  ? [...new Set(availability.filter(a => a.facility_id === form.facility_id).map(a => a.weekday))].sort((a, b) => a - b)
+                  ? [...new Set(availability.filter(a => a.facility_id === form.facility_id && (!plan || periodsOverlap(a.valid_from, a.valid_to, plan.valid_from, plan.valid_to))).map(a => a.weekday))].sort((a, b) => a - b)
                   : [];
                 const options = availDays.length > 0
                   ? WEEKDAY_OPTIONS.filter(o => availDays.includes(o.value))
