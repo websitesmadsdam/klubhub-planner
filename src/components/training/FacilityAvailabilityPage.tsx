@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { formatDate } from '@/lib/utils';
 import { useFacilities } from '@/hooks/useFacilities';
 import { useFacilityAvailability, useCreateFacilityAvailability, useUpdateFacilityAvailability, useDeleteFacilityAvailability } from '@/hooks/useFacilityAvailability';
 import type { FacilityAvailability } from '@/types/training';
