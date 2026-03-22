@@ -85,10 +85,6 @@ export function TaskList({ onOpenTask, onEditTask, onNewTask, onNewFromTemplate 
     });
   };
 
-  const formatDateLocal = (d: string | null) => {
-    if (!d) return '—';
-    return formatDate(d);
-  };
 
   const displayName = (t: Task) =>
     t.responsible?.full_name || t.responsible?.email || '—';
