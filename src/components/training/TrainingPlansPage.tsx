@@ -159,7 +159,7 @@ export default function TrainingPlansPage({ onNavigateToSlots }: { onNavigateToS
                   <div className="flex items-center gap-4 text-sm">
                     <span className="flex items-center gap-1 text-muted-foreground">
                       <CalendarDays className="h-3.5 w-3.5" />
-                      {plan.valid_from}{plan.valid_to ? ` → ${plan.valid_to}` : ' →'}
+                      {formatDateRange(plan.valid_from, plan.valid_to)}
                     </span>
                     <SlotCount planId={plan.id} />
                     {onNavigateToSlots && (

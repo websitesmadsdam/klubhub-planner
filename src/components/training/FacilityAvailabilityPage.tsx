@@ -152,7 +152,7 @@ export default function FacilityAvailabilityPage() {
                                     {av.start_time.slice(0, 5)} – {av.end_time.slice(0, 5)}
                                   </Badge>
                                   <span className="text-xs text-muted-foreground">
-                                    {av.valid_from}{av.valid_to ? ` → ${av.valid_to}` : ''}
+                                    {formatDate(av.valid_from)}{av.valid_to ? ` → ${formatDate(av.valid_to)}` : ''}
                                   </span>
                                   {av.notes && <span className="text-xs text-muted-foreground italic">({av.notes})</span>}
                                   <div className="flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">

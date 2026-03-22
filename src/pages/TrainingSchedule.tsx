@@ -100,7 +100,7 @@ const TrainingSchedule = () => {
                 </Select>
                 {selectedPlan && (
                   <span className="text-xs text-muted-foreground">
-                    {selectedPlan.valid_from}{selectedPlan.valid_to ? ` → ${selectedPlan.valid_to}` : ' →'}
+                    {formatDateRange(selectedPlan.valid_from, selectedPlan.valid_to)}
                   </span>
                 )}
               </div>
