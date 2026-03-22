@@ -100,6 +100,36 @@ interface ConflictInfo {
   capacity: number;
 }
 
+interface IntervalLike {
+  id: string;
+  start_time: string;
+  end_time: string;
+}
+
+function getMaxConcurrentBySlot(intervals: IntervalLike[]): Map<string, number> {
+  const parsed = intervals
+    .map(i => ({ id: i.id, start: timeToMinutes(i.start_time), end: timeToMinutes(i.end_time) }))
+    .filter(i => i.end > i.start);
+
+  const points = [...new Set(parsed.flatMap(i => [i.start, i.end]))].sort((a, b) => a - b);
+  const maxBySlot = new Map<string, number>();
+
+  for (let i = 0; i < points.length - 1; i++) {
+    const segStart = points[i];
+    const segEnd = points[i + 1];
+    if (segEnd <= segStart) continue;
+
+    const active = parsed.filter(p => p.start < segEnd && segStart < p.end);
+    const concurrent = active.length;
+
+    for (const slot of active) {
+      maxBySlot.set(slot.id, Math.max(maxBySlot.get(slot.id) ?? 0, concurrent));
+    }
+  }
+
+  return maxBySlot;
+}
+
 function findCapacityConflicts(slots: TrainingSlot[], facilities: Facility[]): ConflictInfo[] {
   const conflicts: ConflictInfo[] = [];
   const facilityMap = new Map(facilities.map(f => [f.id, f]));
@@ -116,24 +146,21 @@ function findCapacityConflicts(slots: TrainingSlot[], facilities: Facility[]): C
     const fac = facilityMap.get(facId);
     if (!fac) continue;
 
-    for (let i = 0; i < groupSlots.length; i++) {
-      const overlapping = groupSlots.filter(s =>
-        timesOverlap(groupSlots[i].start_time, groupSlots[i].end_time, s.start_time, s.end_time)
-      );
-      if (overlapping.length > fac.simultaneous_capacity) {
-        for (const s of overlapping) {
-          if (!conflicts.find(c => c.slotId === s.id)) {
-            conflicts.push({
-              slotId: s.id,
-              message: `${fac.name}: ${overlapping.length} samtidige hold (kapacitet: ${fac.simultaneous_capacity})`,
-              count: overlapping.length,
-              capacity: fac.simultaneous_capacity,
-            });
-          }
-        }
+    const maxConcurrentBySlot = getMaxConcurrentBySlot(groupSlots);
+
+    for (const slot of groupSlots) {
+      const concurrent = maxConcurrentBySlot.get(slot.id) ?? 0;
+      if (concurrent > fac.simultaneous_capacity) {
+        conflicts.push({
+          slotId: slot.id,
+          message: `${fac.name}: ${concurrent} samtidige hold (kapacitet: ${fac.simultaneous_capacity})`,
+          count: concurrent,
+          capacity: fac.simultaneous_capacity,
+        });
       }
     }
   }
+
   return conflicts;
 }
 
@@ -159,8 +186,16 @@ function checkFormConflicts(
 
   // Check capacity
   const otherSlots = slots.filter(s => s.facility_id === form.facility_id && s.weekday === form.weekday && s.id !== editingId);
-  const overlapping = otherSlots.filter(s => timesOverlap(form.start_time, form.end_time, s.start_time, s.end_time));
-  const totalConcurrent = overlapping.length + 1; // +1 for the new/edited slot
+  const previewId = '__preview__';
+  const maxConcurrentBySlot = getMaxConcurrentBySlot([
+    ...otherSlots,
+    {
+      id: previewId,
+      start_time: form.start_time,
+      end_time: form.end_time,
+    },
+  ]);
+  const totalConcurrent = maxConcurrentBySlot.get(previewId) ?? 1;
   const capacityWarning = totalConcurrent > fac.simultaneous_capacity
     ? `Kapacitetskonflikt: ${totalConcurrent} samtidige hold i ${fac.name} (kapacitet: ${fac.simultaneous_capacity})`
     : null;
