@@ -426,7 +426,7 @@ export default function TrainingSlotsPage({ planId }: { planId: string }) {
             <div>
               <Label>Facilitet *</Label>
               <Select value={form.facility_id} onValueChange={v => {
-                const availDays = availability.filter(a => a.facility_id === v).map(a => a.weekday);
+                const availDays = availability.filter(a => a.facility_id === v && (!plan || periodsOverlap(a.valid_from, a.valid_to, plan.valid_from, plan.valid_to))).map(a => a.weekday);
                 const uniqueDays = [...new Set(availDays)].sort((a, b) => a - b);
                 setForm(f => ({
                   ...f,
