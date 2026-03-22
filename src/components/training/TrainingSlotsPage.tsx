@@ -264,12 +264,29 @@ export default function TrainingSlotsPage({ planId }: { planId: string }) {
                 <TableHeader>
                   <TableRow>
                     <TableHead className="w-8" />
-                    <TableHead>Ugedag</TableHead>
-                    <TableHead>Tid</TableHead>
-                    <TableHead>Facilitet</TableHead>
-                    <TableHead>Hold</TableHead>
-                    <TableHead>Undergruppe</TableHead>
-                    <TableHead>Ansvarlig</TableHead>
+                    {([
+                      ['weekday', 'Ugedag'],
+                      ['time', 'Tid'],
+                      ['facility', 'Facilitet'],
+                      ['team', 'Hold'],
+                      ['subgroup', 'Undergruppe'],
+                      ['coach', 'Ansvarlig'],
+                    ] as [SlotSortKey, string][]).map(([key, label]) => (
+                      <TableHead
+                        key={key}
+                        className="cursor-pointer select-none hover:text-foreground transition-colors"
+                        onClick={() => toggleSort(key)}
+                      >
+                        <span className="inline-flex items-center gap-1">
+                          {label}
+                          {sortKey === key ? (
+                            sortDir === 'asc' ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />
+                          ) : (
+                            <ArrowUpDown className="h-3 w-3 opacity-30" />
+                          )}
+                        </span>
+                      </TableHead>
+                    ))}
                     <TableHead className="w-20" />
                   </TableRow>
                 </TableHeader>
