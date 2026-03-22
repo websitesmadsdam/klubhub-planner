@@ -47,11 +47,13 @@ function detectWarnings(slots: TrainingSlot[], facilities: Facility[]): Warning[
         const aStart = timeToMinutes(a.start_time), aEnd = timeToMinutes(a.end_time);
         const bStart = timeToMinutes(b.start_time), bEnd = timeToMinutes(b.end_time);
 
-        // Time overlap
-        if (aStart < bEnd && bStart < aEnd) {
+        // Time overlap – only warn if different facilities (same facility is fine)
+        if (aStart < bEnd && bStart < aEnd && a.facility_id !== b.facility_id) {
+          const facA = facilityMap.get(a.facility_id)?.name ?? '?';
+          const facB = facilityMap.get(b.facility_id)?.name ?? '?';
           warnings.push({
             type: 'overlap',
-            message: `${coach}: tidsoverlap ${WEEKDAYS[a.weekday]} – ${a.team_group_name} (${a.start_time.slice(0, 5)}–${a.end_time.slice(0, 5)}) og ${b.team_group_name} (${b.start_time.slice(0, 5)}–${b.end_time.slice(0, 5)})`,
+            message: `${coach}: tidsoverlap ${WEEKDAYS[a.weekday]} – ${a.team_group_name} (${a.start_time.slice(0, 5)}–${a.end_time.slice(0, 5)}, ${facA}) og ${b.team_group_name} (${b.start_time.slice(0, 5)}–${b.end_time.slice(0, 5)}, ${facB})`,
             slotIds: [a.id, b.id],
           });
         }
