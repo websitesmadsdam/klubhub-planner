@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useTrainingPlans, useCreateTrainingPlan, useUpdateTrainingPlan, useDeleteTrainingPlan, usePublishPlan, useCopyPlan } from '@/hooks/useTrainingPlans';
+import { formatDateRange } from '@/lib/utils';
 import { useTrainingSlots } from '@/hooks/useTrainingSlots';
 import type { TrainingPlan } from '@/types/training';
 import { Button } from '@/components/ui/button';
