@@ -234,7 +234,7 @@ export default function TrainingSlotsPage({ planId }: { planId: string }) {
 
   // Stats
   const uniqueTeams = [...new Set(slots.map(s => s.team_group_name))];
-  const outsideAvailCount = slots.filter(s => isSlotOutsideAvailability(s, availability)).length;
+  const outsideAvailCount = slots.filter(s => isSlotOutsideAvailability(s, availability, plan)).length;
 
   if (isLoading) return <div className="text-muted-foreground">Indlæser træningspas…</div>;
 
