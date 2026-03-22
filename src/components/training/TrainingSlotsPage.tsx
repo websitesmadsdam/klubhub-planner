@@ -409,7 +409,15 @@ export default function TrainingSlotsPage({ planId }: { planId: string }) {
           <div className="space-y-4">
             <div>
               <Label>Facilitet *</Label>
-              <Select value={form.facility_id} onValueChange={v => setForm(f => ({ ...f, facility_id: v }))}>
+              <Select value={form.facility_id} onValueChange={v => {
+                const availDays = availability.filter(a => a.facility_id === v).map(a => a.weekday);
+                const uniqueDays = [...new Set(availDays)].sort((a, b) => a - b);
+                setForm(f => ({
+                  ...f,
+                  facility_id: v,
+                  weekday: uniqueDays.length > 0 && !uniqueDays.includes(f.weekday) ? uniqueDays[0] : f.weekday,
+                }));
+              }}>
                 <SelectTrigger><SelectValue placeholder="Vælg facilitet" /></SelectTrigger>
                 <SelectContent>{facilities.map(f => (
                   <SelectItem key={f.id} value={f.id}>
@@ -420,10 +428,25 @@ export default function TrainingSlotsPage({ planId }: { planId: string }) {
             </div>
             <div>
               <Label>Ugedag *</Label>
-              <Select value={String(form.weekday)} onValueChange={v => setForm(f => ({ ...f, weekday: Number(v) }))}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>{WEEKDAY_OPTIONS.map(o => <SelectItem key={o.value} value={String(o.value)}>{o.label}</SelectItem>)}</SelectContent>
-              </Select>
+              {(() => {
+                const availDays = form.facility_id
+                  ? [...new Set(availability.filter(a => a.facility_id === form.facility_id).map(a => a.weekday))].sort((a, b) => a - b)
+                  : [];
+                const options = availDays.length > 0
+                  ? WEEKDAY_OPTIONS.filter(o => availDays.includes(o.value))
+                  : WEEKDAY_OPTIONS;
+                return (
+                  <Select value={String(form.weekday)} onValueChange={v => setForm(f => ({ ...f, weekday: Number(v) }))}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      {options.map(o => <SelectItem key={o.value} value={String(o.value)}>{o.label}</SelectItem>)}
+                      {availDays.length > 0 && availDays.length < 7 && (
+                        <div className="px-2 py-1.5 text-xs text-muted-foreground border-t">Kun dage med haltilgængelighed</div>
+                      )}
+                    </SelectContent>
+                  </Select>
+                );
+              })()}
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div><Label>Start *</Label><Input type="time" value={form.start_time} onChange={e => setForm(f => ({ ...f, start_time: e.target.value }))} /></div>
