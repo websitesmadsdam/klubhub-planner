@@ -84,9 +84,9 @@ export function TaskList({ onOpenTask, onEditTask, onNewTask, onNewFromTemplate 
     });
   };
 
-  const formatDate = (d: string | null) => {
+  const formatDateLocal = (d: string | null) => {
     if (!d) return '—';
-    return new Date(d).toLocaleDateString('da-DK', { day: 'numeric', month: 'short', year: 'numeric' });
+    return formatDate(d);
   };
 
   const displayName = (t: Task) =>

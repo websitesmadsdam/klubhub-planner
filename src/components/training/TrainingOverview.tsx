@@ -291,7 +291,7 @@ function DayView({ plan, slots, facilities }: { plan: TrainingPlan; slots: Train
             <div className="mb-3 print:hidden">
               <h2 className="text-lg font-bold text-foreground">{fac.name}</h2>
               <p className="text-sm text-muted-foreground">
-                {plan.name} · Gyldig fra {plan.valid_from}{plan.valid_to ? ` til ${plan.valid_to}` : ''}
+                {plan.name} · Gyldig fra {formatDate(plan.valid_from)}{plan.valid_to ? ` til ${formatDate(plan.valid_to)}` : ''}
               </p>
             </div>
 

@@ -30,8 +30,7 @@ const Dashboard = () => {
     return acc;
   }, {});
 
-  const fmtShort = (d: string) =>
-    new Date(d).toLocaleDateString('da-DK', { day: 'numeric', month: 'short' });
+  const fmtShort = (d: string) => formatDate(d);
 
   const isOverdue = (d: string) => new Date(d) < new Date(new Date().toDateString());
 
