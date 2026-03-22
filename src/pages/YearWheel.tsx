@@ -222,9 +222,7 @@ const YearWheel = () => {
                           {task?.responsible?.full_name || task?.responsible?.email || '—'}
                         </TableCell>
                         <TableCell className="text-muted-foreground">
-                          {task?.deadline
-                            ? new Date(task.deadline).toLocaleDateString('da-DK', { day: 'numeric', month: 'short' })
-                            : '—'}
+                          {task?.deadline ? formatDate(task.deadline) : '—'}
                         </TableCell>
                         <TableCell>
                           {task ? (
