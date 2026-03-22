@@ -114,7 +114,8 @@ function checkFormConflicts(
   editingId: string | null,
   slots: TrainingSlot[],
   facilities: Facility[],
-  availability: FacilityAvailability[]
+  availability: FacilityAvailability[],
+  plan?: { valid_from: string; valid_to: string | null }
 ): { capacityWarning: string | null; availabilityWarning: string | null } {
   const fac = facilities.find(f => f.id === form.facility_id);
   if (!fac || !form.start_time || !form.end_time) return { capacityWarning: null, availabilityWarning: null };
