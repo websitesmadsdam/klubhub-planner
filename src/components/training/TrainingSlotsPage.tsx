@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { useTrainingSlots, useCreateTrainingSlot, useUpdateTrainingSlot, useDeleteTrainingSlot } from '@/hooks/useTrainingSlots';
 import { useFacilities } from '@/hooks/useFacilities';
 import { useFacilityAvailability } from '@/hooks/useFacilityAvailability';
@@ -16,7 +16,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Plus, Pencil, Trash2, AlertTriangle, AlertCircle, Users, Clock } from 'lucide-react';
+import { Plus, Pencil, Trash2, AlertTriangle, AlertCircle, Users, Clock, ArrowUp, ArrowDown, ArrowUpDown } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface SlotForm {
@@ -123,6 +123,9 @@ function checkFormConflicts(
   return { capacityWarning, availabilityWarning };
 }
 
+type SlotSortKey = 'weekday' | 'time' | 'facility' | 'team' | 'subgroup' | 'coach';
+type SlotSortDir = 'asc' | 'desc';
+
 export default function TrainingSlotsPage({ planId }: { planId: string }) {
   const { data: slots = [], isLoading } = useTrainingSlots(planId);
   const { data: facilities = [] } = useFacilities();
@@ -135,6 +138,36 @@ export default function TrainingSlotsPage({ planId }: { planId: string }) {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<TrainingSlot | null>(null);
   const [form, setForm] = useState<SlotForm>(emptySlotForm);
+  const [sortKey, setSortKey] = useState<SlotSortKey>('weekday');
+  const [sortDir, setSortDir] = useState<SlotSortDir>('asc');
+
+  const toggleSort = useCallback((key: SlotSortKey) => {
+    setSortKey(prev => {
+      if (prev === key) {
+        setSortDir(d => d === 'asc' ? 'desc' : 'asc');
+        return key;
+      }
+      setSortDir('asc');
+      return key;
+    });
+  }, []);
+
+  const sortedSlots = useMemo(() => {
+    const dir = sortDir === 'asc' ? 1 : -1;
+    const fn = (fId: string) => facilities.find(f => f.id === fId)?.name ?? '';
+    const comparators: Record<SlotSortKey, (a: TrainingSlot, b: TrainingSlot) => number> = {
+      weekday: (a, b) => (a.weekday - b.weekday) * dir,
+      time: (a, b) => a.start_time.localeCompare(b.start_time) * dir,
+      facility: (a, b) => fn(a.facility_id).localeCompare(fn(b.facility_id)) * dir,
+      team: (a, b) => a.team_group_name.localeCompare(b.team_group_name) * dir,
+      subgroup: (a, b) => (a.subgroup_name ?? '').localeCompare(b.subgroup_name ?? '') * dir,
+      coach: (a, b) => (a.responsible_name ?? '').localeCompare(b.responsible_name ?? '') * dir,
+    };
+    const primary = comparators[sortKey];
+    return [...slots].sort((a, b) =>
+      primary(a, b) || (a.weekday - b.weekday) || a.start_time.localeCompare(b.start_time)
+    );
+  }, [slots, sortKey, sortDir, facilities]);
 
   const plan = plans.find(p => p.id === planId);
   const conflicts = useMemo(() => findCapacityConflicts(slots, facilities), [slots, facilities]);
@@ -231,17 +264,34 @@ export default function TrainingSlotsPage({ planId }: { planId: string }) {
                 <TableHeader>
                   <TableRow>
                     <TableHead className="w-8" />
-                    <TableHead>Ugedag</TableHead>
-                    <TableHead>Tid</TableHead>
-                    <TableHead>Facilitet</TableHead>
-                    <TableHead>Hold</TableHead>
-                    <TableHead>Undergruppe</TableHead>
-                    <TableHead>Ansvarlig</TableHead>
+                    {([
+                      ['weekday', 'Ugedag'],
+                      ['time', 'Tid'],
+                      ['facility', 'Facilitet'],
+                      ['team', 'Hold'],
+                      ['subgroup', 'Undergruppe'],
+                      ['coach', 'Ansvarlig'],
+                    ] as [SlotSortKey, string][]).map(([key, label]) => (
+                      <TableHead
+                        key={key}
+                        className="cursor-pointer select-none hover:text-foreground transition-colors"
+                        onClick={() => toggleSort(key)}
+                      >
+                        <span className="inline-flex items-center gap-1">
+                          {label}
+                          {sortKey === key ? (
+                            sortDir === 'asc' ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />
+                          ) : (
+                            <ArrowUpDown className="h-3 w-3 opacity-30" />
+                          )}
+                        </span>
+                      </TableHead>
+                    ))}
                     <TableHead className="w-20" />
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {slots.map(s => {
+                  {sortedSlots.map(s => {
                     const conflict = conflicts.find(c => c.slotId === s.id);
                     const outsideAvail = isSlotOutsideAvailability(s, availability);
                     return (
