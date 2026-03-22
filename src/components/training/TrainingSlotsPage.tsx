@@ -291,7 +291,7 @@ export default function TrainingSlotsPage({ planId }: { planId: string }) {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {slots.map(s => {
+                  {sortedSlots.map(s => {
                     const conflict = conflicts.find(c => c.slotId === s.id);
                     const outsideAvail = isSlotOutsideAvailability(s, availability);
                     return (
