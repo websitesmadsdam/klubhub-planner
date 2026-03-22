@@ -44,10 +44,39 @@ function timesOverlap(a1: string, a2: string, b1: string, b2: string) {
   return timeToMinutes(a1) < timeToMinutes(b2) && timeToMinutes(b1) < timeToMinutes(a2);
 }
 
-function periodsOverlap(aFrom: string, aTo: string | null, bFrom: string, bTo: string | null): boolean {
-  const aEnd = aTo ?? '9999-12-31';
-  const bEnd = bTo ?? '9999-12-31';
-  return aFrom <= bEnd && bFrom <= aEnd;
+function toUtcDate(dateStr: string): Date {
+  const [year, month, day] = dateStr.split('-').map(Number);
+  return new Date(Date.UTC(year, month - 1, day));
+}
+
+function overlapsOnWeekday(
+  aFrom: string,
+  aTo: string | null,
+  bFrom: string,
+  bTo: string | null,
+  weekday: number
+): boolean {
+  const overlapStart = toUtcDate(aFrom > bFrom ? aFrom : bFrom);
+  const overlapEnd = toUtcDate((aTo ?? '9999-12-31') < (bTo ?? '9999-12-31') ? (aTo ?? '9999-12-31') : (bTo ?? '9999-12-31'));
+
+  if (overlapStart > overlapEnd) return false;
+
+  const targetJsWeekday = weekday % 7; // 1..6 => 1..6, 7 (søndag) => 0
+  const startJsWeekday = overlapStart.getUTCDay();
+  const daysUntilTarget = (targetJsWeekday - startJsWeekday + 7) % 7;
+
+  const firstMatchingDate = new Date(overlapStart);
+  firstMatchingDate.setUTCDate(firstMatchingDate.getUTCDate() + daysUntilTarget);
+
+  return firstMatchingDate <= overlapEnd;
+}
+
+function availabilityAppliesToPlan(
+  av: Pick<FacilityAvailability, 'valid_from' | 'valid_to' | 'weekday'>,
+  plan?: { valid_from: string; valid_to: string | null }
+): boolean {
+  if (!plan) return true;
+  return overlapsOnWeekday(av.valid_from, av.valid_to, plan.valid_from, plan.valid_to, av.weekday);
 }
 
 function isSlotOutsideAvailability(
@@ -58,7 +87,7 @@ function isSlotOutsideAvailability(
   const facAvail = availability.filter(a =>
     a.facility_id === slot.facility_id &&
     a.weekday === slot.weekday &&
-    (!plan || periodsOverlap(a.valid_from, a.valid_to, plan.valid_from, plan.valid_to))
+    availabilityAppliesToPlan(a, plan)
   );
   if (facAvail.length === 0) return true;
   return !facAvail.some(a => timeToMinutes(slot.start_time) >= timeToMinutes(a.start_time) && timeToMinutes(slot.end_time) <= timeToMinutes(a.end_time));
@@ -426,7 +455,9 @@ export default function TrainingSlotsPage({ planId }: { planId: string }) {
             <div>
               <Label>Facilitet *</Label>
               <Select value={form.facility_id} onValueChange={v => {
-                const availDays = availability.filter(a => a.facility_id === v && (!plan || periodsOverlap(a.valid_from, a.valid_to, plan.valid_from, plan.valid_to))).map(a => a.weekday);
+                const availDays = availability
+                  .filter(a => a.facility_id === v && availabilityAppliesToPlan(a, plan))
+                  .map(a => a.weekday);
                 const uniqueDays = [...new Set(availDays)].sort((a, b) => a - b);
                 setForm(f => ({
                   ...f,
@@ -446,7 +477,9 @@ export default function TrainingSlotsPage({ planId }: { planId: string }) {
               <Label>Ugedag *</Label>
               {(() => {
                 const availDays = form.facility_id
-                  ? [...new Set(availability.filter(a => a.facility_id === form.facility_id && (!plan || periodsOverlap(a.valid_from, a.valid_to, plan.valid_from, plan.valid_to))).map(a => a.weekday))].sort((a, b) => a - b)
+                  ? [...new Set(availability
+                    .filter(a => a.facility_id === form.facility_id && availabilityAppliesToPlan(a, plan))
+                    .map(a => a.weekday))].sort((a, b) => a - b)
                   : [];
                 const options = availDays.length > 0
                   ? WEEKDAY_OPTIONS.filter(o => availDays.includes(o.value))
