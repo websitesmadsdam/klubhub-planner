@@ -157,7 +157,7 @@ function findCapacityConflicts(slots: TrainingSlot[], facilities: Facility[]): C
       if (concurrent > fac.simultaneous_capacity) {
         conflicts.push({
           slotId: slot.id,
-          message: `${fac.name}: ${concurrent} samtidige hold (kapacitet: ${fac.simultaneous_capacity})`,
+          message: `${fac.location} · ${fac.name}: ${concurrent} samtidige hold (kapacitet: ${fac.simultaneous_capacity})`,
           count: concurrent,
           capacity: fac.simultaneous_capacity,
         });
@@ -201,7 +201,7 @@ function checkFormConflicts(
   ]);
   const totalConcurrent = maxConcurrentBySlot.get(previewId) ?? 1;
   const capacityWarning = totalConcurrent > fac.simultaneous_capacity
-    ? `Kapacitetskonflikt: ${totalConcurrent} samtidige hold i ${fac.name} (kapacitet: ${fac.simultaneous_capacity})`
+    ? `Kapacitetskonflikt: ${totalConcurrent} samtidige hold i ${fac.location} · ${fac.name} (kapacitet: ${fac.simultaneous_capacity})`
     : null;
 
   return { capacityWarning, availabilityWarning };
@@ -240,7 +240,10 @@ export default function TrainingSlotsPage({ planId }: { planId: string }) {
 
   const sortedSlots = useMemo(() => {
     const dir = sortDir === 'asc' ? 1 : -1;
-    const fn = (fId: string) => facilities.find(f => f.id === fId)?.name ?? '';
+    const fn = (fId: string) => {
+      const fac = facilities.find(f => f.id === fId);
+      return fac ? `${fac.location} ${fac.name}` : '';
+    };
     const comparators: Record<SlotSortKey, (a: TrainingSlot, b: TrainingSlot) => number> = {
       weekday: (a, b) => (a.weekday - b.weekday) * dir,
       time: (a, b) => a.start_time.localeCompare(b.start_time) * dir,
@@ -304,7 +307,10 @@ export default function TrainingSlotsPage({ planId }: { planId: string }) {
     setDialogOpen(false);
   };
 
-  const facilityName = (id: string) => facilities.find(f => f.id === id)?.name ?? 'Ukendt';
+  const facilityName = (id: string) => {
+    const fac = facilities.find(f => f.id === id);
+    return fac ? `${fac.location} · ${fac.name}` : 'Ukendt';
+  };
 
   // Stats
   const uniqueTeams = [...new Set(slots.map(s => s.team_group_name))];
@@ -439,7 +445,7 @@ export default function TrainingSlotsPage({ planId }: { planId: string }) {
                 <Card key={fac.id} className={facConflicts.length > 0 ? 'border-destructive/30' : ''}>
                   <CardHeader className="pb-3">
                     <CardTitle className="text-base flex items-center gap-2 flex-wrap">
-                      {fac.name}
+                      {fac.location} · {fac.name}
                       <Badge variant="outline" className="gap-1 font-normal"><Users className="h-3 w-3" />Kapacitet: {fac.simultaneous_capacity}</Badge>
                       <Badge variant="outline" className="font-normal">{facSlots.length} pas</Badge>
                       {facConflicts.length > 0 && (
@@ -513,7 +519,7 @@ export default function TrainingSlotsPage({ planId }: { planId: string }) {
                 <SelectTrigger><SelectValue placeholder="Vælg facilitet" /></SelectTrigger>
                 <SelectContent>{facilities.map(f => (
                   <SelectItem key={f.id} value={f.id}>
-                    {f.name} <span className="text-muted-foreground">(kap. {f.simultaneous_capacity})</span>
+                    {f.location} · {f.name} <span className="text-muted-foreground">(kap. {f.simultaneous_capacity})</span>
                   </SelectItem>
                 ))}</SelectContent>
               </Select>
@@ -662,7 +668,7 @@ function FreeSlots({ facilities, availability, slots, plan }: { facilities: Faci
             <Card key={fac.id}>
               <CardHeader className="pb-3">
                 <CardTitle className="text-base flex items-center gap-2">
-                  {fac.name}
+                  {fac.location} · {fac.name}
                   <Badge variant="outline" className="font-normal gap-1"><Users className="h-3 w-3" />Kap. {fac.simultaneous_capacity}</Badge>
                 </CardTitle>
               </CardHeader>

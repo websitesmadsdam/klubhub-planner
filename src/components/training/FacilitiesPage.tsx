@@ -14,6 +14,7 @@ import { Badge } from '@/components/ui/badge';
 import { Plus, Pencil, Trash2, Users } from 'lucide-react';
 
 interface FacilityForm {
+  location: string;
   name: string;
   description: string;
   simultaneous_capacity: number;
@@ -27,13 +28,13 @@ export default function FacilitiesPage({ availability = [] }: { availability?: F
 
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<Facility | null>(null);
-  const [form, setForm] = useState<FacilityForm>({ name: '', description: '', simultaneous_capacity: 1 });
+  const [form, setForm] = useState<FacilityForm>({ location: '', name: '', description: '', simultaneous_capacity: 1 });
 
-  const openNew = () => { setEditing(null); setForm({ name: '', description: '', simultaneous_capacity: 1 }); setDialogOpen(true); };
-  const openEdit = (f: Facility) => { setEditing(f); setForm({ name: f.name, description: f.description ?? '', simultaneous_capacity: f.simultaneous_capacity }); setDialogOpen(true); };
+  const openNew = () => { setEditing(null); setForm({ location: '', name: '', description: '', simultaneous_capacity: 1 }); setDialogOpen(true); };
+  const openEdit = (f: Facility) => { setEditing(f); setForm({ location: f.location, name: f.name, description: f.description ?? '', simultaneous_capacity: f.simultaneous_capacity }); setDialogOpen(true); };
 
   const handleSave = async () => {
-    const payload = { name: form.name, description: form.description || null, simultaneous_capacity: form.simultaneous_capacity };
+    const payload = { location: form.location, name: form.name, description: form.description || null, simultaneous_capacity: form.simultaneous_capacity };
     if (editing) {
       await updateFacility.mutateAsync({ id: editing.id, ...payload });
     } else {
@@ -70,6 +71,7 @@ export default function FacilitiesPage({ availability = [] }: { availability?: F
             <TableHeader>
               <TableRow>
                 <TableHead>Navn</TableHead>
+                <TableHead>Lokation</TableHead>
                 <TableHead>Beskrivelse</TableHead>
                 <TableHead className="text-center">Samtidige hold</TableHead>
                 <TableHead>Tilgængelighed</TableHead>
@@ -82,6 +84,7 @@ export default function FacilitiesPage({ availability = [] }: { availability?: F
                 return (
                   <TableRow key={f.id}>
                     <TableCell className="font-medium">{f.name}</TableCell>
+                    <TableCell className="text-muted-foreground">{f.location}</TableCell>
                     <TableCell className="text-muted-foreground max-w-xs truncate">{f.description ?? '–'}</TableCell>
                     <TableCell className="text-center">
                       <Badge variant="outline" className="gap-1">
@@ -119,6 +122,7 @@ export default function FacilitiesPage({ availability = [] }: { availability?: F
         <DialogContent>
           <DialogHeader><DialogTitle>{editing ? 'Rediger facilitet' : 'Ny facilitet'}</DialogTitle></DialogHeader>
           <div className="space-y-4">
+            <div><Label>Lokation *</Label><Input value={form.location} onChange={e => setForm(f => ({ ...f, location: e.target.value }))} placeholder="Fx Egedalshallen" /></div>
             <div><Label>Navn *</Label><Input value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} placeholder="Fx Hal 1, Gymnastiksalen" /></div>
             <div><Label>Beskrivelse</Label><Textarea value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} placeholder="Valgfri beskrivelse af faciliteten" /></div>
             <div>
@@ -129,7 +133,7 @@ export default function FacilitiesPage({ availability = [] }: { availability?: F
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setDialogOpen(false)}>Annullér</Button>
-            <Button onClick={handleSave} disabled={!form.name || createFacility.isPending || updateFacility.isPending}>
+            <Button onClick={handleSave} disabled={!form.location || !form.name || createFacility.isPending || updateFacility.isPending}>
               {(createFacility.isPending || updateFacility.isPending) ? 'Gemmer…' : 'Gem'}
             </Button>
           </DialogFooter>

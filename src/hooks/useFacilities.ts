@@ -11,6 +11,7 @@ export function useFacilities() {
       const { data, error } = await supabase
         .from('facilities' as any)
         .select('*')
+        .order('location')
         .order('name');
       if (error) throw error;
       return (data as unknown as Facility[]) ?? [];

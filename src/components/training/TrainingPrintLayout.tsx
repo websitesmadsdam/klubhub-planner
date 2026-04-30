@@ -78,10 +78,12 @@ export default function TrainingPrintLayout({ plan, slots, facilities }: Props) 
   const columns = useMemo<Column[]>(() => {
     const combos = new Set<string>();
     const cols: Column[] = [];
-    const sorted = [...slots].sort((a, b) => {
+      const sorted = [...slots].sort((a, b) => {
       if (a.weekday !== b.weekday) return a.weekday - b.weekday;
-      const fa = facilityMap.get(a.facility_id)?.name ?? '';
-      const fb = facilityMap.get(b.facility_id)?.name ?? '';
+        const facA = facilityMap.get(a.facility_id);
+        const facB = facilityMap.get(b.facility_id);
+        const fa = facA ? `${facA.location} ${facA.name}` : '';
+        const fb = facB ? `${facB.location} ${facB.name}` : '';
       return fa.localeCompare(fb);
     });
     for (const s of sorted) {
@@ -89,7 +91,7 @@ export default function TrainingPrintLayout({ plan, slots, facilities }: Props) 
       if (combos.has(key)) continue;
       combos.add(key);
       const fac = facilityMap.get(s.facility_id);
-      const shortFac = (fac?.name ?? 'Ukendt').replace(/hallen$/i, '').replace(/\s+$/, '');
+      const shortFac = fac ? `${fac.location} · ${fac.name}`.replace(/hallen$/i, '').replace(/\s+$/, '') : 'Ukendt';
       cols.push({
         dayLabel: DAY_SHORT[s.weekday] ?? `D${s.weekday}`,
         facilityName: shortFac,

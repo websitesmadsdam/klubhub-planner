@@ -49,20 +49,24 @@ function detectWarnings(slots: TrainingSlot[], facilities: Facility[]): Warning[
 
         // Time overlap – only warn if different facilities (same facility is fine)
         if (aStart < bEnd && bStart < aEnd && a.facility_id !== b.facility_id) {
-          const facA = facilityMap.get(a.facility_id)?.name ?? '?';
-          const facB = facilityMap.get(b.facility_id)?.name ?? '?';
+          const facAData = facilityMap.get(a.facility_id);
+          const facBData = facilityMap.get(b.facility_id);
+          const facA = facAData ? `${facAData.location} · ${facAData.name}` : '?';
+          const facB = facBData ? `${facBData.location} · ${facBData.name}` : '?';
           warnings.push({
             type: 'overlap',
             message: `${coach}: tidsoverlap ${WEEKDAYS[a.weekday]} – ${a.team_group_name} (${a.start_time.slice(0, 5)}–${a.end_time.slice(0, 5)}, ${facA}) og ${b.team_group_name} (${b.start_time.slice(0, 5)}–${b.end_time.slice(0, 5)}, ${facB})`,
             slotIds: [a.id, b.id],
           });
         }
-        // Location switch with short buffer (< 30 min between sessions at different facilities)
-        else if (a.facility_id !== b.facility_id) {
+        // Location switch with short buffer (< 30 min between sessions at different locations)
+        else {
           const gap = bStart - aEnd;
-          if (gap >= 0 && gap < 30) {
-            const facA = facilityMap.get(a.facility_id)?.name ?? '?';
-            const facB = facilityMap.get(b.facility_id)?.name ?? '?';
+          const facAData = facilityMap.get(a.facility_id);
+          const facBData = facilityMap.get(b.facility_id);
+          if (gap >= 0 && gap < 30 && facAData?.location !== facBData?.location) {
+            const facA = facAData ? `${facAData.location} · ${facAData.name}` : '?';
+            const facB = facBData ? `${facBData.location} · ${facBData.name}` : '?';
             warnings.push({
               type: 'location_switch',
               message: `${coach}: ${WEEKDAYS[a.weekday]} – skift fra ${facA} til ${facB} med kun ${gap} min buffer`,
@@ -135,7 +139,11 @@ export default function TeamOverview({ slots, facilities }: Props) {
       team: (a, b) => a.team_group_name.localeCompare(b.team_group_name) * dir,
       weekday: (a, b) => (a.weekday - b.weekday) * dir,
       time: (a, b) => a.start_time.localeCompare(b.start_time) * dir,
-      facility: (a, b) => (facilityMap.get(a.facility_id)?.name ?? '').localeCompare(facilityMap.get(b.facility_id)?.name ?? '') * dir,
+      facility: (a, b) => {
+        const facA = facilityMap.get(a.facility_id);
+        const facB = facilityMap.get(b.facility_id);
+        return (facA ? `${facA.location} ${facA.name}` : '').localeCompare(facB ? `${facB.location} ${facB.name}` : '') * dir;
+      },
       coach: (a, b) => (a.responsible_name ?? '').localeCompare(b.responsible_name ?? '') * dir,
     };
     const primary = comparators[sortKey];
@@ -233,7 +241,7 @@ export default function TeamOverview({ slots, facilities }: Props) {
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Alle lokationer</SelectItem>
-            {facilities.map(f => <SelectItem key={f.id} value={f.id}>{f.name}</SelectItem>)}
+            {facilities.map(f => <SelectItem key={f.id} value={f.id}>{f.location} · {f.name}</SelectItem>)}
           </SelectContent>
         </Select>
 
@@ -339,7 +347,8 @@ export default function TeamOverview({ slots, facilities }: Props) {
             ) : (
               sortedSlots.map(s => {
                 const hasWarning = warningSlotIds.has(s.id);
-                const facName = facilityMap.get(s.facility_id)?.name ?? 'Ukendt';
+                const fac = facilityMap.get(s.facility_id);
+                const facName = fac ? `${fac.location} · ${fac.name}` : 'Ukendt';
                 return (
                   <TableRow key={s.id} className={hasWarning ? 'bg-destructive/5' : ''}>
                     <TableCell className="pr-0">

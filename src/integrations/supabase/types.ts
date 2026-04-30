@@ -19,6 +19,7 @@ export type Database = {
           created_at: string
           description: string | null
           id: string
+          location: string
           name: string
           simultaneous_capacity: number
           updated_at: string
@@ -27,6 +28,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           id?: string
+          location: string
           name: string
           simultaneous_capacity?: number
           updated_at?: string
@@ -35,6 +37,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           id?: string
+          location?: string
           name?: string
           simultaneous_capacity?: number
           updated_at?: string

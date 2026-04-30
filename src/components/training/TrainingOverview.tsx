@@ -112,7 +112,7 @@ export default function TrainingOverview({ plan, slots, facilities }: Props) {
             <SelectTrigger className="w-56"><SelectValue placeholder="Vælg facilitet" /></SelectTrigger>
             <SelectContent>
               {viewMode === 'day' && <SelectItem value="all">Alle faciliteter</SelectItem>}
-              {facilitiesWithSlots.map(f => <SelectItem key={f.id} value={f.id}>{f.name}</SelectItem>)}
+              {facilitiesWithSlots.map(f => <SelectItem key={f.id} value={f.id}>{f.location} · {f.name}</SelectItem>)}
             </SelectContent>
           </Select>
         </div>
@@ -166,7 +166,7 @@ function FacilityWeekGrid({ facility, plan, slots, allSlots }: {
     <div className="print:break-before-page first:print:break-before-auto">
       {/* Print-only header */}
       <div className="hidden print:block print:mb-6">
-        <h1 className="text-3xl font-bold text-black">Træningsplan – {facility.name}</h1>
+        <h1 className="text-3xl font-bold text-black">Træningsplan – {facility.location} · {facility.name}</h1>
         <p className="text-base text-gray-700 mt-1">
           {plan.name} · Gyldig fra {formatDate(plan.valid_from)}{plan.valid_to ? ` til ${formatDate(plan.valid_to)}` : ''} · Kapacitet: {capacity}
         </p>
@@ -175,7 +175,7 @@ function FacilityWeekGrid({ facility, plan, slots, allSlots }: {
       {/* Screen header */}
       <div className="mb-3 print:hidden">
         <h2 className="text-lg font-bold text-foreground">
-          Træningsplan – {facility.name}
+          Træningsplan – {facility.location} · {facility.name}
           <span className="ml-2 text-sm font-normal text-muted-foreground">(kapacitet: {capacity})</span>
         </h2>
         <p className="text-sm text-muted-foreground">
@@ -284,13 +284,13 @@ function DayView({ plan, slots, facilities }: { plan: TrainingPlan; slots: Train
         return (
           <div key={fac.id} className="print:break-before-page first:print:break-before-auto">
             <div className="hidden print:block print:mb-4">
-              <h1 className="text-2xl font-bold text-black">Træningsplan – {fac.name}</h1>
+              <h1 className="text-2xl font-bold text-black">Træningsplan – {fac.location} · {fac.name}</h1>
               <p className="text-sm text-gray-600 mt-1">
                 {plan.name} · Gyldig fra {formatDate(plan.valid_from)}{plan.valid_to ? ` til ${formatDate(plan.valid_to)}` : ''}
               </p>
             </div>
             <div className="mb-3 print:hidden">
-              <h2 className="text-lg font-bold text-foreground">{fac.name}</h2>
+              <h2 className="text-lg font-bold text-foreground">{fac.location} · {fac.name}</h2>
               <p className="text-sm text-muted-foreground">
                 {plan.name} · Gyldig fra {formatDate(plan.valid_from)}{plan.valid_to ? ` til ${formatDate(plan.valid_to)}` : ''}
               </p>
