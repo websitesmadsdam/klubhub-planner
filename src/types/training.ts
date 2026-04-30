@@ -20,6 +20,7 @@ export interface TrainingPlan {
 
 export interface Facility {
   id: string;
+  location: string;
   name: string;
   description: string | null;
   simultaneous_capacity: number;
