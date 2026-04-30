@@ -3,6 +3,8 @@ import { useTrainingSlots, useCreateTrainingSlot, useUpdateTrainingSlot, useDele
 import { useFacilities } from '@/hooks/useFacilities';
 import { useFacilityAvailability } from '@/hooks/useFacilityAvailability';
 import { useTrainingPlans } from '@/hooks/useTrainingPlans';
+import { useTeams } from '@/hooks/useTeams';
+import { usePersons } from '@/hooks/usePersons';
 import type { TrainingSlot, Facility, FacilityAvailability } from '@/types/training';
 import { WEEKDAYS, WEEKDAY_OPTIONS } from '@/types/training';
 import { Button } from '@/components/ui/button';
@@ -21,6 +23,8 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip
 
 interface SlotForm {
   facility_id: string;
+  team_id: string;
+  person_id: string;
   weekday: number;
   start_time: string;
   end_time: string;
@@ -31,7 +35,7 @@ interface SlotForm {
 }
 
 const emptySlotForm: SlotForm = {
-  facility_id: '', weekday: 1, start_time: '17:00', end_time: '18:30',
+  facility_id: '', team_id: '', person_id: '', weekday: 1, start_time: '17:00', end_time: '18:30',
   team_group_name: '', subgroup_name: '', responsible_name: '', notes: '',
 };
 
@@ -211,6 +215,8 @@ export default function TrainingSlotsPage({ planId }: { planId: string }) {
   const { data: facilities = [] } = useFacilities();
   const { data: availability = [] } = useFacilityAvailability();
   const { data: plans = [] } = useTrainingPlans();
+  const { data: teams = [] } = useTeams();
+  const { data: persons = [] } = usePersons();
   const createSlot = useCreateTrainingSlot();
   const updateSlot = useUpdateTrainingSlot();
   const deleteSlot = useDeleteTrainingSlot();
@@ -263,6 +269,8 @@ export default function TrainingSlotsPage({ planId }: { planId: string }) {
     setEditing(s);
     setForm({
       facility_id: s.facility_id,
+      team_id: s.team_id ?? '',
+      person_id: s.person_id ?? '',
       weekday: s.weekday,
       start_time: s.start_time.slice(0, 5),
       end_time: s.end_time.slice(0, 5),
@@ -278,6 +286,8 @@ export default function TrainingSlotsPage({ planId }: { planId: string }) {
     const payload = {
       training_plan_id: planId,
       facility_id: form.facility_id,
+      team_id: form.team_id || null,
+      person_id: form.person_id || null,
       weekday: form.weekday,
       start_time: form.start_time,
       end_time: form.end_time,
@@ -535,6 +545,43 @@ export default function TrainingSlotsPage({ planId }: { planId: string }) {
             <div className="grid grid-cols-2 gap-4">
               <div><Label>Start *</Label><Input type="time" value={form.start_time} onChange={e => setForm(f => ({ ...f, start_time: e.target.value }))} /></div>
               <div><Label>Slut *</Label><Input type="time" value={form.end_time} onChange={e => setForm(f => ({ ...f, end_time: e.target.value }))} /></div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label>Hold</Label>
+                <Select value={form.team_id || 'none'} onValueChange={v => {
+                  const team = teams.find(t => t.id === v);
+                  setForm(f => ({
+                    ...f,
+                    team_id: v === 'none' ? '' : v,
+                    team_group_name: team ? team.name : f.team_group_name,
+                  }));
+                }}>
+                  <SelectTrigger><SelectValue placeholder="Vælg hold" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">Fritekst / intet fast hold</SelectItem>
+                    {teams.map(t => <SelectItem key={t.id} value={t.id}>{t.abbreviation} · {t.name}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label>Ansvarlig person</Label>
+                <Select value={form.person_id || 'none'} onValueChange={v => {
+                  const person = persons.find(p => p.id === v);
+                  setForm(f => ({
+                    ...f,
+                    person_id: v === 'none' ? '' : v,
+                    responsible_name: person ? person.name : f.responsible_name,
+                  }));
+                }}>
+                  <SelectTrigger><SelectValue placeholder="Vælg person" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">Fritekst / ingen fast person</SelectItem>
+                    {persons.map(p => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
 
             {/* Live warnings */}

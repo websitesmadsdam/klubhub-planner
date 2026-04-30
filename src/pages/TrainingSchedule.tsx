@@ -11,9 +11,11 @@ import FacilitiesPage from '@/components/training/FacilitiesPage';
 import FacilityAvailabilityPage from '@/components/training/FacilityAvailabilityPage';
 import TrainingSlotsPage from '@/components/training/TrainingSlotsPage';
 import TrainingOverview from '@/components/training/TrainingOverview';
+import TeamsPage from '@/components/training/TeamsPage';
+import PersonsPage from '@/components/training/PersonsPage';
 import { Badge } from '@/components/ui/badge';
 import TeamOverview from '@/components/training/TeamOverview';
-import { Building2, Calendar, Clock, LayoutGrid, Eye, Users } from 'lucide-react';
+import { Building2, Calendar, Clock, LayoutGrid, Eye, Users, UserRound } from 'lucide-react';
 
 const TrainingSchedule = () => {
   const { data: plans = [] } = useTrainingPlans();
@@ -25,6 +27,7 @@ const TrainingSchedule = () => {
   const activePlan = plans.find(p => p.status === 'active');
   const effectivePlanId = selectedPlanId || activePlan?.id || plans[0]?.id || '';
   const selectedPlan = plans.find(p => p.id === effectivePlanId);
+  const sortedPlans = [...plans].sort((a, b) => a.valid_from.localeCompare(b.valid_from) || (a.valid_to ?? '').localeCompare(b.valid_to ?? ''));
 
   return (
     <div>
@@ -43,7 +46,7 @@ const TrainingSchedule = () => {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-6">
-        <TabsList className="grid w-full grid-cols-6 lg:w-auto lg:inline-grid print:hidden">
+        <TabsList className="grid w-full grid-cols-8 lg:w-auto lg:inline-grid print:hidden">
           <TabsTrigger value="plans" className="gap-1.5">
             <Calendar className="h-3.5 w-3.5" />Planer
           </TabsTrigger>
@@ -52,6 +55,12 @@ const TrainingSchedule = () => {
           </TabsTrigger>
           <TabsTrigger value="availability" className="gap-1.5">
             <Clock className="h-3.5 w-3.5" />Haltilgængelighed
+          </TabsTrigger>
+          <TabsTrigger value="master-teams" className="gap-1.5">
+            <Users className="h-3.5 w-3.5" />Hold
+          </TabsTrigger>
+          <TabsTrigger value="persons" className="gap-1.5">
+            <UserRound className="h-3.5 w-3.5" />Personer
           </TabsTrigger>
           <TabsTrigger value="slots" className="gap-1.5">
             <LayoutGrid className="h-3.5 w-3.5" />Træningspas
@@ -76,6 +85,14 @@ const TrainingSchedule = () => {
           <FacilityAvailabilityPage />
         </TabsContent>
 
+        <TabsContent value="master-teams" className="mt-6">
+          <TeamsPage />
+        </TabsContent>
+
+        <TabsContent value="persons" className="mt-6">
+          <PersonsPage />
+        </TabsContent>
+
         <TabsContent value="slots" className="mt-6">
           {plans.length > 0 ? (
             <div className="space-y-4">
@@ -86,7 +103,7 @@ const TrainingSchedule = () => {
                     <SelectValue placeholder="Vælg en plan" />
                   </SelectTrigger>
                   <SelectContent>
-                    {plans.map(p => (
+                    {sortedPlans.map(p => (
                       <SelectItem key={p.id} value={p.id}>
                         <span className="flex items-center gap-2">
                           {p.name}
@@ -130,6 +147,7 @@ function OverviewWithPlanSelector({ plans, facilities, effectivePlanId, selected
 }) {
   const { data: overviewSlots = [] } = useTrainingSlots(effectivePlanId);
   const selectedPlan = plans.find((p: any) => p.id === effectivePlanId);
+  const sortedPlans = [...plans].sort((a: any, b: any) => a.valid_from.localeCompare(b.valid_from) || (a.valid_to ?? '').localeCompare(b.valid_to ?? ''));
 
   if (plans.length === 0) {
     return <div className="rounded-lg border border-border bg-card p-12 text-center text-muted-foreground">Opret en træningsplan først under fanen "Planer"</div>;
@@ -142,7 +160,7 @@ function OverviewWithPlanSelector({ plans, facilities, effectivePlanId, selected
         <Select value={effectivePlanId} onValueChange={setSelectedPlanId}>
           <SelectTrigger className="w-72"><SelectValue placeholder="Vælg en plan" /></SelectTrigger>
           <SelectContent>
-            {plans.map((p: any) => (
+            {sortedPlans.map((p: any) => (
               <SelectItem key={p.id} value={p.id}>
                 <span className="flex items-center gap-2">
                   {p.name}
@@ -167,6 +185,7 @@ function TeamsWithPlanSelector({ plans, facilities, effectivePlanId, selectedPla
   plans: any[]; facilities: any[]; effectivePlanId: string; selectedPlanId: string; setSelectedPlanId: (id: string) => void;
 }) {
   const { data: teamSlots = [] } = useTrainingSlots(effectivePlanId);
+  const sortedPlans = [...plans].sort((a: any, b: any) => a.valid_from.localeCompare(b.valid_from) || (a.valid_to ?? '').localeCompare(b.valid_to ?? ''));
 
   if (plans.length === 0) {
     return <div className="rounded-lg border border-border bg-card p-12 text-center text-muted-foreground">Opret en træningsplan først under fanen "Planer"</div>;
@@ -179,7 +198,7 @@ function TeamsWithPlanSelector({ plans, facilities, effectivePlanId, selectedPla
         <Select value={effectivePlanId} onValueChange={setSelectedPlanId}>
           <SelectTrigger className="w-72"><SelectValue placeholder="Vælg en plan" /></SelectTrigger>
           <SelectContent>
-            {plans.map((p: any) => (
+            {sortedPlans.map((p: any) => (
               <SelectItem key={p.id} value={p.id}>
                 <span className="flex items-center gap-2">
                   {p.name}
