@@ -547,6 +547,43 @@ export default function TrainingSlotsPage({ planId }: { planId: string }) {
               <div><Label>Slut *</Label><Input type="time" value={form.end_time} onChange={e => setForm(f => ({ ...f, end_time: e.target.value }))} /></div>
             </div>
 
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label>Hold</Label>
+                <Select value={form.team_id || 'none'} onValueChange={v => {
+                  const team = teams.find(t => t.id === v);
+                  setForm(f => ({
+                    ...f,
+                    team_id: v === 'none' ? '' : v,
+                    team_group_name: team ? team.name : f.team_group_name,
+                  }));
+                }}>
+                  <SelectTrigger><SelectValue placeholder="Vælg hold" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">Fritekst / intet fast hold</SelectItem>
+                    {teams.map(t => <SelectItem key={t.id} value={t.id}>{t.abbreviation} · {t.name}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label>Ansvarlig person</Label>
+                <Select value={form.person_id || 'none'} onValueChange={v => {
+                  const person = persons.find(p => p.id === v);
+                  setForm(f => ({
+                    ...f,
+                    person_id: v === 'none' ? '' : v,
+                    responsible_name: person ? person.name : f.responsible_name,
+                  }));
+                }}>
+                  <SelectTrigger><SelectValue placeholder="Vælg person" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">Fritekst / ingen fast person</SelectItem>
+                    {persons.map(p => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
             {/* Live warnings */}
             {(formWarnings.capacityWarning || formWarnings.availabilityWarning) && (
               <div className="space-y-1.5">
