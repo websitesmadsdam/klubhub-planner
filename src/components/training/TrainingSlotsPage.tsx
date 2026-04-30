@@ -331,8 +331,25 @@ export default function TrainingSlotsPage({ planId }: { planId: string }) {
           <h2 className="text-xl font-semibold text-foreground">Træningspas</h2>
           {plan && <p className="text-sm text-muted-foreground">Plan: {plan.name}</p>}
         </div>
-        <Button onClick={openNew} disabled={facilities.length === 0}><Plus className="mr-2 h-4 w-4" />Nyt træningspas</Button>
+        <div className="flex items-center gap-2">
+          {plan?.status === 'active' && (
+            <Button variant={activePlanUnlocked ? 'secondary' : 'outline'} onClick={() => setActivePlanUnlocked(v => !v)}>
+              {activePlanUnlocked ? <Unlock className="mr-2 h-4 w-4" /> : <Lock className="mr-2 h-4 w-4" />}
+              {activePlanUnlocked ? 'Lås aktiv plan' : 'Lås aktiv plan op'}
+            </Button>
+          )}
+          <Button onClick={openNew} disabled={facilities.length === 0 || isActivePlanLocked}><Plus className="mr-2 h-4 w-4" />Nyt træningspas</Button>
+        </div>
       </div>
+
+      {isActivePlanLocked && (
+        <Card className="border-secondary/50 bg-secondary/10">
+          <CardContent className="flex items-center gap-2 py-3 text-sm text-muted-foreground">
+            <Lock className="h-4 w-4 shrink-0" />
+            Den aktive plan er låst for ændringer. Lås den op, hvis du bevidst vil rette i den aktive plan.
+          </CardContent>
+        </Card>
+      )}
 
       {/* Summary bar */}
       {slots.length > 0 && (
@@ -420,9 +437,9 @@ export default function TrainingSlotsPage({ planId }: { planId: string }) {
                         <TableCell className="text-muted-foreground">{s.responsible_name ?? '–'}</TableCell>
                         <TableCell>
                           <div className="flex gap-1">
-                            <Button variant="ghost" size="icon" onClick={() => openEdit(s)}><Pencil className="h-3.5 w-3.5" /></Button>
+                            <Button variant="ghost" size="icon" onClick={() => openEdit(s)} disabled={isActivePlanLocked}><Pencil className="h-3.5 w-3.5" /></Button>
                             <AlertDialog>
-                              <AlertDialogTrigger asChild><Button variant="ghost" size="icon"><Trash2 className="h-3.5 w-3.5 text-destructive" /></Button></AlertDialogTrigger>
+                              <AlertDialogTrigger asChild><Button variant="ghost" size="icon" disabled={isActivePlanLocked}><Trash2 className="h-3.5 w-3.5 text-destructive" /></Button></AlertDialogTrigger>
                               <AlertDialogContent>
                                 <AlertDialogHeader><AlertDialogTitle>Slet træningspas?</AlertDialogTitle><AlertDialogDescription>Sletter {s.team_group_name} – {WEEKDAYS[s.weekday]} {s.start_time.slice(0,5)}–{s.end_time.slice(0,5)}</AlertDialogDescription></AlertDialogHeader>
                                 <AlertDialogFooter><AlertDialogCancel>Annullér</AlertDialogCancel><AlertDialogAction onClick={() => deleteSlot.mutate(s.id)}>Slet</AlertDialogAction></AlertDialogFooter>
@@ -476,7 +493,7 @@ export default function TrainingSlotsPage({ planId }: { planId: string }) {
                                     key={s.id}
                                     variant={hasConflict ? 'destructive' : outsideAvail ? 'secondary' : 'secondary'}
                                     className={`cursor-pointer text-xs ${hasConflict ? '' : outsideAvail ? 'border-secondary' : ''}`}
-                                    onClick={() => openEdit(s)}
+                                    onClick={() => { if (!isActivePlanLocked) openEdit(s); }}
                                   >
                                     {hasConflict && <AlertTriangle className="h-3 w-3 mr-1" />}
                                     {s.start_time.slice(0, 5)}–{s.end_time.slice(0, 5)} {s.team_group_name}
