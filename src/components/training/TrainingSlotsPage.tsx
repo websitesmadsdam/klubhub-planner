@@ -516,7 +516,7 @@ export default function TrainingSlotsPage({ planId }: { planId: string }) {
                 <SelectTrigger><SelectValue placeholder="Vælg facilitet" /></SelectTrigger>
                 <SelectContent>{facilities.map(f => (
                   <SelectItem key={f.id} value={f.id}>
-                    {f.name} <span className="text-muted-foreground">(kap. {f.simultaneous_capacity})</span>
+                    {f.location} · {f.name} <span className="text-muted-foreground">(kap. {f.simultaneous_capacity})</span>
                   </SelectItem>
                 ))}</SelectContent>
               </Select>
@@ -665,7 +665,7 @@ function FreeSlots({ facilities, availability, slots, plan }: { facilities: Faci
             <Card key={fac.id}>
               <CardHeader className="pb-3">
                 <CardTitle className="text-base flex items-center gap-2">
-                  {fac.name}
+                  {fac.location} · {fac.name}
                   <Badge variant="outline" className="font-normal gap-1"><Users className="h-3 w-3" />Kap. {fac.simultaneous_capacity}</Badge>
                 </CardTitle>
               </CardHeader>
