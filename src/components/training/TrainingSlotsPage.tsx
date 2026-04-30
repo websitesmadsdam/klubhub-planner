@@ -492,7 +492,7 @@ export default function TrainingSlotsPage({ planId }: { planId: string }) {
                                   <Badge
                                     key={s.id}
                                     variant={hasConflict ? 'destructive' : outsideAvail ? 'secondary' : 'secondary'}
-                                    className={`cursor-pointer text-xs ${hasConflict ? '' : outsideAvail ? 'border-secondary' : ''}`}
+                                    className={`${isActivePlanLocked ? '' : 'cursor-pointer'} text-xs ${hasConflict ? '' : outsideAvail ? 'border-secondary' : ''}`}
                                     onClick={() => { if (!isActivePlanLocked) openEdit(s); }}
                                   >
                                     {hasConflict && <AlertTriangle className="h-3 w-3 mr-1" />}
@@ -636,7 +636,7 @@ export default function TrainingSlotsPage({ planId }: { planId: string }) {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setDialogOpen(false)}>Annullér</Button>
-            <Button onClick={handleSave} disabled={!form.facility_id || !form.team_group_name || !form.start_time || !form.end_time || createSlot.isPending || updateSlot.isPending}>
+            <Button onClick={handleSave} disabled={isActivePlanLocked || !form.facility_id || !form.team_group_name || !form.start_time || !form.end_time || createSlot.isPending || updateSlot.isPending}>
               {(createSlot.isPending || updateSlot.isPending) ? 'Gemmer…' : 'Gem'}
             </Button>
           </DialogFooter>
