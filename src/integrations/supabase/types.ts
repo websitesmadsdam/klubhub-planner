@@ -88,6 +88,69 @@ export type Database = {
           },
         ]
       }
+      person_team_roles: {
+        Row: {
+          created_at: string
+          id: string
+          person_id: string
+          role: Database["public"]["Enums"]["team_person_role"]
+          team_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          person_id: string
+          role: Database["public"]["Enums"]["team_person_role"]
+          team_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          person_id?: string
+          role?: Database["public"]["Enums"]["team_person_role"]
+          team_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "person_team_roles_person_id_fkey"
+            columns: ["person_id"]
+            isOneToOne: false
+            referencedRelation: "persons"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "person_team_roles_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      persons: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string
@@ -278,6 +341,39 @@ export type Database = {
           },
         ]
       }
+      teams: {
+        Row: {
+          abbreviation: string
+          birth_year_from: number
+          birth_year_to: number
+          created_at: string
+          gender: Database["public"]["Enums"]["team_gender"]
+          id: string
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          abbreviation: string
+          birth_year_from: number
+          birth_year_to: number
+          created_at?: string
+          gender: Database["public"]["Enums"]["team_gender"]
+          id?: string
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          abbreviation?: string
+          birth_year_from?: number
+          birth_year_to?: number
+          created_at?: string
+          gender?: Database["public"]["Enums"]["team_gender"]
+          id?: string
+          name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       training_plans: {
         Row: {
           created_at: string
@@ -321,10 +417,12 @@ export type Database = {
           facility_id: string
           id: string
           notes: string | null
+          person_id: string | null
           responsible_name: string | null
           start_time: string
           subgroup_name: string | null
           team_group_name: string
+          team_id: string | null
           training_plan_id: string
           updated_at: string
           weekday: number
@@ -335,10 +433,12 @@ export type Database = {
           facility_id: string
           id?: string
           notes?: string | null
+          person_id?: string | null
           responsible_name?: string | null
           start_time: string
           subgroup_name?: string | null
           team_group_name: string
+          team_id?: string | null
           training_plan_id: string
           updated_at?: string
           weekday: number
@@ -349,10 +449,12 @@ export type Database = {
           facility_id?: string
           id?: string
           notes?: string | null
+          person_id?: string | null
           responsible_name?: string | null
           start_time?: string
           subgroup_name?: string | null
           team_group_name?: string
+          team_id?: string | null
           training_plan_id?: string
           updated_at?: string
           weekday?: number
@@ -363,6 +465,20 @@ export type Database = {
             columns: ["facility_id"]
             isOneToOne: false
             referencedRelation: "facilities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "training_slots_person_id_fkey"
+            columns: ["person_id"]
+            isOneToOne: false
+            referencedRelation: "persons"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "training_slots_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
             referencedColumns: ["id"]
           },
           {
@@ -439,6 +555,13 @@ export type Database = {
         | "waiting"
         | "completed"
         | "cancelled"
+      team_gender: "M" | "K"
+      team_person_role:
+        | "cheftraener"
+        | "traener"
+        | "assistent"
+        | "holdleder"
+        | "ungtraener"
       training_plan_status: "draft" | "active" | "archived"
       yearwheel_status: "planned" | "in_progress" | "completed" | "cancelled"
     }
@@ -575,6 +698,14 @@ export const Constants = {
         "waiting",
         "completed",
         "cancelled",
+      ],
+      team_gender: ["M", "K"],
+      team_person_role: [
+        "cheftraener",
+        "traener",
+        "assistent",
+        "holdleder",
+        "ungtraener",
       ],
       training_plan_status: ["draft", "active", "archived"],
       yearwheel_status: ["planned", "in_progress", "completed", "cancelled"],
