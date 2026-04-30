@@ -89,7 +89,7 @@ export default function TrainingPrintLayout({ plan, slots, facilities }: Props) 
       if (combos.has(key)) continue;
       combos.add(key);
       const fac = facilityMap.get(s.facility_id);
-      const shortFac = (fac?.name ?? 'Ukendt').replace(/hallen$/i, '').replace(/\s+$/, '');
+      const shortFac = fac ? `${fac.location} · ${fac.name}`.replace(/hallen$/i, '').replace(/\s+$/, '') : 'Ukendt';
       cols.push({
         dayLabel: DAY_SHORT[s.weekday] ?? `D${s.weekday}`,
         facilityName: shortFac,
