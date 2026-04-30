@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, useEffect } from 'react';
 import { useTrainingSlots, useCreateTrainingSlot, useUpdateTrainingSlot, useDeleteTrainingSlot } from '@/hooks/useTrainingSlots';
 import { useFacilities } from '@/hooks/useFacilities';
 import { useFacilityAvailability } from '@/hooks/useFacilityAvailability';
@@ -18,7 +18,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Plus, Pencil, Trash2, AlertTriangle, AlertCircle, Users, Clock, ArrowUp, ArrowDown, ArrowUpDown } from 'lucide-react';
+import { Plus, Pencil, Trash2, AlertTriangle, AlertCircle, Users, Clock, ArrowUp, ArrowDown, ArrowUpDown, Lock, Unlock } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface SlotForm {
@@ -226,6 +226,11 @@ export default function TrainingSlotsPage({ planId }: { planId: string }) {
   const [form, setForm] = useState<SlotForm>(emptySlotForm);
   const [sortKey, setSortKey] = useState<SlotSortKey>('weekday');
   const [sortDir, setSortDir] = useState<SlotSortDir>('asc');
+  const [activePlanUnlocked, setActivePlanUnlocked] = useState(false);
+
+  useEffect(() => {
+    setActivePlanUnlocked(false);
+  }, [planId]);
 
   const toggleSort = useCallback((key: SlotSortKey) => {
     setSortKey(prev => {
@@ -259,6 +264,7 @@ export default function TrainingSlotsPage({ planId }: { planId: string }) {
   }, [slots, sortKey, sortDir, facilities]);
 
   const plan = plans.find(p => p.id === planId);
+  const isActivePlanLocked = plan?.status === 'active' && !activePlanUnlocked;
   const conflicts = useMemo(() => findCapacityConflicts(slots, facilities), [slots, facilities]);
 
   // Live warnings for form
