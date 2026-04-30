@@ -442,7 +442,7 @@ export default function TrainingSlotsPage({ planId }: { planId: string }) {
                 <Card key={fac.id} className={facConflicts.length > 0 ? 'border-destructive/30' : ''}>
                   <CardHeader className="pb-3">
                     <CardTitle className="text-base flex items-center gap-2 flex-wrap">
-                      {fac.name}
+                      {fac.location} · {fac.name}
                       <Badge variant="outline" className="gap-1 font-normal"><Users className="h-3 w-3" />Kapacitet: {fac.simultaneous_capacity}</Badge>
                       <Badge variant="outline" className="font-normal">{facSlots.length} pas</Badge>
                       {facConflicts.length > 0 && (

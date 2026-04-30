@@ -122,7 +122,7 @@ export default function FacilityAvailabilityPage() {
                 <CardHeader className="pb-3">
                   <div className="flex items-center justify-between">
                     <CardTitle className="text-base flex items-center gap-2">
-                      {fac.name}
+                      {fac.location} · {fac.name}
                       {totalHours > 0 && (
                         <Badge variant="outline" className="font-normal gap-1">
                           <Clock className="h-3 w-3" />{totalHours} t/uge
@@ -160,7 +160,7 @@ export default function FacilityAvailabilityPage() {
                                     <AlertDialog>
                                       <AlertDialogTrigger asChild><Button variant="ghost" size="icon" className="h-6 w-6"><Trash2 className="h-3 w-3 text-destructive" /></Button></AlertDialogTrigger>
                                       <AlertDialogContent>
-                                        <AlertDialogHeader><AlertDialogTitle>Slet tilgængelighed?</AlertDialogTitle><AlertDialogDescription>Sletter denne tidsblok for {fac.name}.</AlertDialogDescription></AlertDialogHeader>
+                                        <AlertDialogHeader><AlertDialogTitle>Slet tilgængelighed?</AlertDialogTitle><AlertDialogDescription>Sletter denne tidsblok for {fac.location} · {fac.name}.</AlertDialogDescription></AlertDialogHeader>
                                         <AlertDialogFooter><AlertDialogCancel>Annullér</AlertDialogCancel><AlertDialogAction onClick={() => deleteAv.mutate(av.id)}>Slet</AlertDialogAction></AlertDialogFooter>
                                       </AlertDialogContent>
                                     </AlertDialog>
@@ -188,7 +188,7 @@ export default function FacilityAvailabilityPage() {
               <Label>Facilitet *</Label>
               <Select value={form.facility_id} onValueChange={v => setForm(f => ({ ...f, facility_id: v }))}>
                 <SelectTrigger><SelectValue placeholder="Vælg facilitet" /></SelectTrigger>
-                <SelectContent>{facilities.map(f => <SelectItem key={f.id} value={f.id}>{f.name}</SelectItem>)}</SelectContent>
+                <SelectContent>{facilities.map(f => <SelectItem key={f.id} value={f.id}>{f.location} · {f.name}</SelectItem>)}</SelectContent>
               </Select>
             </div>
             <div>
