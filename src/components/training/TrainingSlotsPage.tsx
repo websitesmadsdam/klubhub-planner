@@ -157,7 +157,7 @@ function findCapacityConflicts(slots: TrainingSlot[], facilities: Facility[]): C
       if (concurrent > fac.simultaneous_capacity) {
         conflicts.push({
           slotId: slot.id,
-          message: `${fac.name}: ${concurrent} samtidige hold (kapacitet: ${fac.simultaneous_capacity})`,
+          message: `${fac.location} · ${fac.name}: ${concurrent} samtidige hold (kapacitet: ${fac.simultaneous_capacity})`,
           count: concurrent,
           capacity: fac.simultaneous_capacity,
         });
@@ -201,7 +201,7 @@ function checkFormConflicts(
   ]);
   const totalConcurrent = maxConcurrentBySlot.get(previewId) ?? 1;
   const capacityWarning = totalConcurrent > fac.simultaneous_capacity
-    ? `Kapacitetskonflikt: ${totalConcurrent} samtidige hold i ${fac.name} (kapacitet: ${fac.simultaneous_capacity})`
+    ? `Kapacitetskonflikt: ${totalConcurrent} samtidige hold i ${fac.location} · ${fac.name} (kapacitet: ${fac.simultaneous_capacity})`
     : null;
 
   return { capacityWarning, availabilityWarning };
@@ -304,7 +304,10 @@ export default function TrainingSlotsPage({ planId }: { planId: string }) {
     setDialogOpen(false);
   };
 
-  const facilityName = (id: string) => facilities.find(f => f.id === id)?.name ?? 'Ukendt';
+  const facilityName = (id: string) => {
+    const fac = facilities.find(f => f.id === id);
+    return fac ? `${fac.location} · ${fac.name}` : 'Ukendt';
+  };
 
   // Stats
   const uniqueTeams = [...new Set(slots.map(s => s.team_group_name))];
