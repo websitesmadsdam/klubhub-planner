@@ -76,10 +76,11 @@ export default function TrainingPlansPage({ onNavigateToSlots }: { onNavigateToS
 
   const activePlan = plans.find(p => p.status === 'active');
 
-  // Sort: active first, then drafts, then archived
+  // Sort by plan period, newest first
   const sortedPlans = [...plans].sort((a, b) => {
-    const order = { active: 0, draft: 1, archived: 2 };
-    return (order[a.status] ?? 3) - (order[b.status] ?? 3);
+    const fromCompare = b.valid_from.localeCompare(a.valid_from);
+    if (fromCompare !== 0) return fromCompare;
+    return (b.valid_to ?? '').localeCompare(a.valid_to ?? '');
   });
 
   if (isLoading) return <div className="text-muted-foreground">Indlæser planer…</div>;
