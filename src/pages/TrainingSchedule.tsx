@@ -147,6 +147,7 @@ function OverviewWithPlanSelector({ plans, facilities, effectivePlanId, selected
 }) {
   const { data: overviewSlots = [] } = useTrainingSlots(effectivePlanId);
   const selectedPlan = plans.find((p: any) => p.id === effectivePlanId);
+  const sortedPlans = [...plans].sort((a: any, b: any) => a.valid_from.localeCompare(b.valid_from) || (a.valid_to ?? '').localeCompare(b.valid_to ?? ''));
 
   if (plans.length === 0) {
     return <div className="rounded-lg border border-border bg-card p-12 text-center text-muted-foreground">Opret en træningsplan først under fanen "Planer"</div>;
@@ -159,7 +160,7 @@ function OverviewWithPlanSelector({ plans, facilities, effectivePlanId, selected
         <Select value={effectivePlanId} onValueChange={setSelectedPlanId}>
           <SelectTrigger className="w-72"><SelectValue placeholder="Vælg en plan" /></SelectTrigger>
           <SelectContent>
-            {plans.map((p: any) => (
+            {sortedPlans.map((p: any) => (
               <SelectItem key={p.id} value={p.id}>
                 <span className="flex items-center gap-2">
                   {p.name}
@@ -184,6 +185,7 @@ function TeamsWithPlanSelector({ plans, facilities, effectivePlanId, selectedPla
   plans: any[]; facilities: any[]; effectivePlanId: string; selectedPlanId: string; setSelectedPlanId: (id: string) => void;
 }) {
   const { data: teamSlots = [] } = useTrainingSlots(effectivePlanId);
+  const sortedPlans = [...plans].sort((a: any, b: any) => a.valid_from.localeCompare(b.valid_from) || (a.valid_to ?? '').localeCompare(b.valid_to ?? ''));
 
   if (plans.length === 0) {
     return <div className="rounded-lg border border-border bg-card p-12 text-center text-muted-foreground">Opret en træningsplan først under fanen "Planer"</div>;
@@ -196,7 +198,7 @@ function TeamsWithPlanSelector({ plans, facilities, effectivePlanId, selectedPla
         <Select value={effectivePlanId} onValueChange={setSelectedPlanId}>
           <SelectTrigger className="w-72"><SelectValue placeholder="Vælg en plan" /></SelectTrigger>
           <SelectContent>
-            {plans.map((p: any) => (
+            {sortedPlans.map((p: any) => (
               <SelectItem key={p.id} value={p.id}>
                 <span className="flex items-center gap-2">
                   {p.name}
