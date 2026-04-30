@@ -59,12 +59,12 @@ function detectWarnings(slots: TrainingSlot[], facilities: Facility[]): Warning[
             slotIds: [a.id, b.id],
           });
         }
-        // Location switch with short buffer (< 30 min between sessions at different facilities)
-        else if (a.facility_id !== b.facility_id) {
+        // Location switch with short buffer (< 30 min between sessions at different locations)
+        else {
           const gap = bStart - aEnd;
-          if (gap >= 0 && gap < 30) {
-            const facAData = facilityMap.get(a.facility_id);
-            const facBData = facilityMap.get(b.facility_id);
+          const facAData = facilityMap.get(a.facility_id);
+          const facBData = facilityMap.get(b.facility_id);
+          if (gap >= 0 && gap < 30 && facAData?.location !== facBData?.location) {
             const facA = facAData ? `${facAData.location} · ${facAData.name}` : '?';
             const facB = facBData ? `${facBData.location} · ${facBData.name}` : '?';
             warnings.push({

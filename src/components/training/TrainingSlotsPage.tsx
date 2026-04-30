@@ -240,7 +240,10 @@ export default function TrainingSlotsPage({ planId }: { planId: string }) {
 
   const sortedSlots = useMemo(() => {
     const dir = sortDir === 'asc' ? 1 : -1;
-    const fn = (fId: string) => facilities.find(f => f.id === fId)?.name ?? '';
+    const fn = (fId: string) => {
+      const fac = facilities.find(f => f.id === fId);
+      return fac ? `${fac.location} ${fac.name}` : '';
+    };
     const comparators: Record<SlotSortKey, (a: TrainingSlot, b: TrainingSlot) => number> = {
       weekday: (a, b) => (a.weekday - b.weekday) * dir,
       time: (a, b) => a.start_time.localeCompare(b.start_time) * dir,
