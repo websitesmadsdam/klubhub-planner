@@ -284,13 +284,13 @@ function DayView({ plan, slots, facilities }: { plan: TrainingPlan; slots: Train
         return (
           <div key={fac.id} className="print:break-before-page first:print:break-before-auto">
             <div className="hidden print:block print:mb-4">
-              <h1 className="text-2xl font-bold text-black">Træningsplan – {fac.name}</h1>
+              <h1 className="text-2xl font-bold text-black">Træningsplan – {fac.location} · {fac.name}</h1>
               <p className="text-sm text-gray-600 mt-1">
                 {plan.name} · Gyldig fra {formatDate(plan.valid_from)}{plan.valid_to ? ` til ${formatDate(plan.valid_to)}` : ''}
               </p>
             </div>
             <div className="mb-3 print:hidden">
-              <h2 className="text-lg font-bold text-foreground">{fac.name}</h2>
+              <h2 className="text-lg font-bold text-foreground">{fac.location} · {fac.name}</h2>
               <p className="text-sm text-muted-foreground">
                 {plan.name} · Gyldig fra {formatDate(plan.valid_from)}{plan.valid_to ? ` til ${formatDate(plan.valid_to)}` : ''}
               </p>

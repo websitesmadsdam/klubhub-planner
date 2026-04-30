@@ -139,7 +139,11 @@ export default function TeamOverview({ slots, facilities }: Props) {
       team: (a, b) => a.team_group_name.localeCompare(b.team_group_name) * dir,
       weekday: (a, b) => (a.weekday - b.weekday) * dir,
       time: (a, b) => a.start_time.localeCompare(b.start_time) * dir,
-      facility: (a, b) => (facilityMap.get(a.facility_id)?.name ?? '').localeCompare(facilityMap.get(b.facility_id)?.name ?? '') * dir,
+      facility: (a, b) => {
+        const facA = facilityMap.get(a.facility_id);
+        const facB = facilityMap.get(b.facility_id);
+        return (facA ? `${facA.location} ${facA.name}` : '').localeCompare(facB ? `${facB.location} ${facB.name}` : '') * dir;
+      },
       coach: (a, b) => (a.responsible_name ?? '').localeCompare(b.responsible_name ?? '') * dir,
     };
     const primary = comparators[sortKey];
@@ -237,7 +241,7 @@ export default function TeamOverview({ slots, facilities }: Props) {
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Alle lokationer</SelectItem>
-            {facilities.map(f => <SelectItem key={f.id} value={f.id}>{f.name}</SelectItem>)}
+            {facilities.map(f => <SelectItem key={f.id} value={f.id}>{f.location} · {f.name}</SelectItem>)}
           </SelectContent>
         </Select>
 
@@ -343,7 +347,8 @@ export default function TeamOverview({ slots, facilities }: Props) {
             ) : (
               sortedSlots.map(s => {
                 const hasWarning = warningSlotIds.has(s.id);
-                const facName = facilityMap.get(s.facility_id)?.name ?? 'Ukendt';
+                const fac = facilityMap.get(s.facility_id);
+                const facName = fac ? `${fac.location} · ${fac.name}` : 'Ukendt';
                 return (
                   <TableRow key={s.id} className={hasWarning ? 'bg-destructive/5' : ''}>
                     <TableCell className="pr-0">
